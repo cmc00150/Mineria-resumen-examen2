@@ -481,7 +481,7 @@ const TAX = {
               t: 'Supervisada',
               hijos: [
                 { a: '', n: { t: 'Entropía', hijos: [{ a: '', n: { t: 'ID3, D2, MDLP, Mántaras', hoja: true } }] } },
-                { a: '', n: { t: 'Binning', hijos: [{ a: '', n: { t: '1R', hoja: true } }] } },
+                { a: '', n: { t: 'Binning', hijos: [{ a: '', n: { t: '1R (OneR)', hoja: true } }] } },
                 { a: '', n: { t: 'Dependencia', hijos: [{ a: '', n: { t: 'Marginal Ent., Zeta', hoja: true } }] } },
                 { a: '', n: { t: 'Exactitud', hijos: [{ a: '', n: { t: 'Adaptive Quantizer', hoja: true } }] } },
               ],

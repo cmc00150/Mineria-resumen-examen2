@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Texto } from './Texto.jsx';
 import { entrada } from '../lib/anim.js';
+import { useTraza } from '../lib/traza.jsx';
 
 // Esquema de funcionamiento: un diagrama de flujo vertical pensado para memorizar.
 //   in  → entrada (píldora clara)       paso → acción (caja)
@@ -65,27 +66,46 @@ function Pasos({ pasos, pref, encendido }) {
   );
 }
 
-export default function Esquema({ pasos, compacto = false }) {
+export default function Esquema({ pasos, compacto = false, titulo = 'Esquema' }) {
   const ref = useRef(null);
-  const [encendido, setEncendido] = useState(null);
+  const [local, setLocal] = useState(null);
   const temporizador = useRef(null);
+  const traza = useTraza();
+  const encendido = traza.activo ?? local;
 
   useEffect(() => {
-    if (!ref.current) return;
+    if (!ref.current || compacto) return undefined;
     entrada(ref.current.querySelectorAll('.caja'), { paso: 45, dur: 420 });
     return () => clearTimeout(temporizador.current);
-  }, [pasos]);
+  }, [pasos, compacto]);
+
+  // En la versión compacta (junto al ejemplo), mantener a la vista el paso activo
+  useEffect(() => {
+    if (!compacto || !ref.current || encendido == null) return;
+    const el = ref.current.querySelector(`[data-paso="${encendido}"]`);
+    const cont = ref.current.closest('aside');
+    if (!el || !cont) return;
+    const r = el.getBoundingClientRect();
+    const c = cont.getBoundingClientRect();
+    if (r.top < c.top || r.bottom > c.bottom) cont.scrollTop += r.top - c.top - c.height / 3;
+  }, [encendido, compacto]);
 
   const repasar = () => {
+    if (traza.reproducir.current) {
+      const ej = document.getElementById('ejemplo');
+      if (ej) ej.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      traza.reproducir.current();
+      return;
+    }
     clearTimeout(temporizador.current);
     const orden = aplanar(pasos);
     let i = 0;
     const tick = () => {
       if (i >= orden.length) {
-        setEncendido(null);
+        setLocal(null);
         return;
       }
-      setEncendido(orden[i]);
+      setLocal(orden[i]);
       i += 1;
       temporizador.current = setTimeout(tick, 900);
     };
@@ -93,15 +113,15 @@ export default function Esquema({ pasos, compacto = false }) {
   };
 
   return (
-    <div className="esquema" ref={ref}>
-      {!compacto && (
-        <div className="panel-titulo">
-          <h2>Esquema</h2>
+    <div className={`esquema ${compacto ? 'compacto' : ''}`} ref={ref}>
+      <div className="panel-titulo">
+        <h2>{titulo}</h2>
+        {!compacto && (
           <button className="boton" onClick={repasar} type="button">
-            Repasar paso a paso
+            {traza.reproducir.current ? '▶ Reproducir en el ejemplo' : 'Repasar paso a paso'}
           </button>
-        </div>
-      )}
+        )}
+      </div>
       <Pasos pasos={pasos} pref="" encendido={encendido} />
     </div>
   );

@@ -3,6 +3,7 @@ import { Marco, ArbolSvg, COLORES, escala, Ejes } from './comun.jsx';
 import { DATASETS, CREDITO, CREDITO_PRISM, TENIS_NUM } from './datos.js';
 import { evaluarAtributo, id3, entropia, contarClases, redondear } from '../lib/stats.js';
 import { anim, latido, stagger, dibujar } from '../lib/anim.js';
+import { usePasos, Controles, Mensaje } from '../lib/traza.jsx';
 
 // ───────── Árbol del tenis: clasificar recorriendo ─────────
 const ARBOL_TENIS = {
@@ -338,13 +339,31 @@ export function Prism() {
   const [desempate, setDesempate] = useState('orden');
   const [porDefecto, setPorDefecto] = useState(false);
   const { pasos, reglas } = useMemo(() => prismTraza({ criterio, desempate, porDefecto }), [criterio, desempate, porDefecto]);
-  const [k, setK] = useState(0);
-  useEffect(() => setK(0), [criterio, desempate, porDefecto]);
-  const p = pasos[Math.min(k, pasos.length - 1)];
+  const frames = useMemo(() => {
+    const fr = [{ e: '0', k: 0, fase: 'ini', msg: 'R ← ∅. Se construyen las reglas de una clase cada vez.' }];
+    pasos.forEach((q, k) => {
+      const previo = pasos[k - 1];
+      if (!previo || previo.c !== q.c || previo.reglasDespues) {
+        if (!previo || previo.c !== q.c) fr.push({ e: '1.0', k, fase: 'E', msg: `Clase ${q.c.toUpperCase()}: E ← toda la BD.` });
+        fr.push({ e: '1.1.0', k, fase: 'nueva', msg: `Nueva regla: SI ∅ ENTONCES crédito = ${q.c.toUpperCase()}.` });
+      }
+      fr.push({ e: '1.1.1.0', k, fase: 'probar', msg: 'Se prueban todas las condiciones X = v todavía no usadas y se calcula su proporción de positivos.' });
+      fr.push({ e: '1.1.1.1', k, fase: 'añadir', msg: `Se añade ${q.mejor.a} = ${q.mejor.v} (${q.mejor.p}/${q.mejor.t}). ${q.perfecta ? 'La regla ya es perfecta.' : 'Aún cubre ejemplos de otra clase: se sigue refinando.'}` });
+      if (q.reglasDespues) fr.push({ e: '1.1.2', k, fase: 'guardar', msg: 'Se guarda la regla en R y se quitan de E los ejemplos que cubre.' });
+    });
+    fr.push({ e: '2', k: pasos.length - 1, fase: 'fin', msg: 'Conjunto de reglas R terminado.' });
+    return fr;
+  }, [pasos]);
+  const pr = usePasos(frames, { intervalo: 1100 });
+  const fp = pr.frame;
+  const k = fp.k;
+  const p0 = pasos[Math.min(k, pasos.length - 1)];
+  const antes = fp.fase === 'probar' || fp.fase === 'nueva' || fp.fase === 'E' || fp.fase === 'ini';
+  const p = antes ? { ...p0, regla: p0.regla.slice(0, -1), mejor: null, cubiertos: [] } : p0;
   const ref = useRef(null);
-  useEffect(() => { if (ref.current) latido(ref.current.querySelectorAll('.resaltado td:first-child')); }, [k]);
-  const fin = k >= pasos.length - 1;
-  const lista = fin ? reglas : p.reglasDespues || p.reglas;
+  useEffect(() => { if (ref.current) latido(ref.current.querySelectorAll('.resaltado td:first-child')); }, [fp.e, k]);
+  const fin = fp.fase === 'fin';
+  const lista = fin ? reglas : fp.fase === 'guardar' ? p0.reglasDespues || p0.reglas : p0.reglas;
   return (
     <Marco
       titulo="PRISM sobre los datos de crédito"
@@ -357,11 +376,9 @@ export function Prism() {
       }
       pie="Con exactitud y «el primero de la tabla» se reproducen las dos reglas de SÍ de la diapositiva. Cambia a «el que cubre más» o a la medida F y verás que la primera regla pasa a ser propietario = sí ∧ gastos = bajos (2/2), más general."
     >
-      <div className="grupo-botones" style={{ marginBottom: 10 }}>
-        <button className="boton" onClick={() => setK((x) => Math.max(0, x - 1))} disabled={k === 0} type="button">Anterior</button>
-        <button className="boton primario" onClick={() => setK((x) => Math.min(pasos.length - 1, x + 1))} disabled={fin} type="button">Siguiente refinamiento</button>
-        <span className="marcador">Paso {k + 1} de {pasos.length} · clase <b>{p.c.toUpperCase()}</b> · regla actual: <b>{txtRegla({ c: p.c, regla: p.regla })}</b> {p.perfecta ? <span className="ok">perfecta</span> : <span className="mal">no es perfecta, se refina</span>}</span>
-      </div>
+      <Controles p={pr} />
+      <p className="marcador">Clase <b>{p.c.toUpperCase()}</b> · regla actual: <b>{txtRegla({ c: p.c, regla: p.regla })}</b></p>
+      <Mensaje>{fp.msg}</Mensaje>
       <div className="dos-col" ref={ref}>
         <div className="tabla-env">
           <table className="t">

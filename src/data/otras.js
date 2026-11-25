@@ -524,10 +524,10 @@ export const otras = [
     resumen: 'En lugar de un predictor, se genera un conjunto de predictores base y se combinan: un comité de expertos que vota.',
     esquema: [
       { k: 'in', t: 'Datos de entrenamiento' },
-      { k: 'paso', t: 'Crear versiones alteradas de los datos' },
-      { k: 'paso', t: 'Aprender un clasificador Cᵢ con cada una (mismo método)' },
+      { k: 'bucle', t: 'Repetir T veces', pasos: [{ k: 'paso', t: 'Crear una versión alterada de los datos (muestra o pesos)' }, { k: 'paso', t: 'Aprender un clasificador Cᵢ con ella (mismo método)' }] },
       { k: 'out', t: 'Agregar las salidas → C*' },
     ],
+    ejemplo: 'ComiteGeneral',
     secciones: [
       {
         t: 'Idea',
@@ -552,7 +552,6 @@ export const otras = [
               ],
             },
           },
-          { demo: 'BaggingBoosting' },
         ],
       },
     ],
@@ -602,7 +601,7 @@ export const otras = [
         ],
       },
     ],
-    ejemplo: 'Bootstrap',
+    ejemplo: 'ComiteBagging',
     rel: [
       ['bootstrap', 'muestreo con reemplazamiento'],
       ['muestreo-aleatorio', 'el mismo muestreo del Tema 3'],
@@ -717,7 +716,7 @@ export const otras = [
         b: ['Bagging y AdaBoostM1 se aplican en las diapositivas a *nci.arff* con C4.5 como base y 5-validación cruzada.'],
       },
     ],
-    ejemplo: 'AdaBoost',
+    ejemplo: 'ComiteBoosting',
     rel: [
       ['bagging', 'el otro gran ensemble'],
       ['sesgo-varianza', 'reduce el sesgo de los débiles'],

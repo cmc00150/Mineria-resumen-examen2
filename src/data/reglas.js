@@ -92,6 +92,7 @@ export const reglas = [
       { k: 'out', t: 'Predecir siempre la mayoritaria' },
     ],
     secciones: [{ t: 'Con los datos de crédito', b: ['8 NO y 2 SÍ → ZeroR predice siempre NO y acierta el 80 %.'] }],
+    ejemplo: 'PasoZeroR',
     rel: [
       ['no-balanceados', 'por qué el 97 % de acierto puede no valer nada'],
       ['arboles', 'es el árbol más simple: un nodo hoja'],
@@ -129,6 +130,7 @@ export const reglas = [
       },
       { k: 'out', t: 'Reglas del atributo con menor error' },
     ],
+    ejemplo: 'PasoOneR',
     secciones: [
       {
         t: 'Dónde aparece en el temario',
@@ -306,6 +308,52 @@ export const reglas = [
     ],
   },
   {
+    id: 'criterios-division',
+    nombre: 'Criterios de división (cómo elige el árbol)',
+    corto: 'Criterios de división',
+    padre: 'arboles',
+    tipo: 'familia',
+    salida: 'ambas',
+    tema: 'T6 · T8',
+    parte: 2,
+    resumen: 'La medida con la que un árbol decide qué prueba pone en cada nodo. Cada algoritmo sigue una estrategia distinta, y se agrupan por la medida que usan.',
+    esquema: [
+      { k: 'in', t: 'Nodo con ejemplos T y atributos candidatos' },
+      { k: 'bucle', t: 'Para cada atributo (o corte) candidato', pasos: [{ k: 'paso', t: 'Repartir T en las ramas que produciría' }, { k: 'paso', t: 'Medir la impureza de esas ramas con el criterio' }] },
+      { k: 'paso', t: 'Quedarse con la mejor división (mayor ganancia / menor Gini)' },
+      { k: 'out', t: 'Dividir el nodo y repetir en cada rama' },
+    ],
+    secciones: [
+      {
+        t: 'Idea común',
+        b: [
+          'Todos miden **cuánto desorden queda** en las ramas después de dividir. Una rama pura (una sola clase, o valores numéricos casi iguales) es la mejor. Lo que cambia es **cómo se mide el desorden**.',
+          {
+            tabla: {
+              cab: ['Familia', 'Desorden de un nodo', 'Se elige', 'Algoritmos'],
+              filas: [
+                ['Entropía', '$H(S) = -\\sum p_i \\log_2 p_i$ → [[entropia]]', 'mayor [[ganancia-informacion|ganancia]]', '[[id3]]'],
+                ['Entropía normalizada', 'ganancia ÷ información de la división → [[ratio-ganancia]]', 'mayor ratio', '[[c45]]'],
+                ['Gini', '$1 - \\sum p_j^2$ → [[gini]]', 'menor $gini_{split}$', '[[cart]]'],
+                ['Desviación típica', 'dispersión del valor numérico', 'mayor SDR', '[[arbol-regresion]], [[arbol-modelos]]'],
+              ],
+            },
+          },
+        ],
+      },
+      {
+        t: 'Qué se hace después de dividir',
+        b: ['Cuándo parar y cómo recortar el árbol no depende del criterio: es la [[poda]] (pre-poda al construir, post-poda al terminar).'],
+      },
+    ],
+    ejemplo: 'Ganancia',
+    rel: [
+      ['entropia', 'mide el desorden'],
+      ['poda', 'lo que viene después'],
+      ['mdlp', 'la misma ganancia, para elegir cortes al discretizar'],
+    ],
+  },
+  {
     id: 'tdidt',
     nombre: 'TDIDT · Top-Down Induction of Decision Trees',
     corto: 'TDIDT',
@@ -379,7 +427,7 @@ export const reglas = [
         ],
       },
     ],
-    ejemplo: 'ArbolCredito',
+    ejemplo: 'ArbolTDIDT',
     rel: [
       ['id3', 'TDIDT + ganancia de información'],
       ['c45', 'TDIDT + ratio de ganancia + poda'],
@@ -468,7 +516,7 @@ export const reglas = [
         ],
       },
     ],
-    ejemplo: 'Ganancia',
+    ejemplo: 'ArbolID3',
     rel: [
       ['c45', 'su sucesor'],
       ['entropia', 'la medida base'],
@@ -566,7 +614,7 @@ export const reglas = [
         ],
       },
     ],
-    ejemplo: 'UmbralC45',
+    ejemplo: 'ArbolC45',
     rel: [
       ['id3', 'su predecesor'],
       ['ratio-ganancia', 'su criterio'],
@@ -602,6 +650,7 @@ export const reglas = [
       { k: 'paso', t: 'Elegir la de gini_split mínimo' },
       { k: 'out', t: 'Recursión en T₁ y T₂' },
     ],
+    ejemplo: 'ArbolCART',
     secciones: [
       {
         t: 'Índice Gini',
@@ -642,6 +691,7 @@ export const reglas = [
       { k: 'bucle', t: 'Para cada camino raíz → hoja', pasos: [{ k: 'paso', t: 'SI (prueba₁ ∧ prueba₂ ∧ …) ENTONCES clase de la hoja' }] },
       { k: 'out', t: 'Sistema Basado en Reglas' },
     ],
+    ejemplo: 'PasoReglasArbol',
     secciones: [
       {
         t: 'Con el primer árbol de crédito',
@@ -684,6 +734,7 @@ export const reglas = [
       { k: 'bucle', t: 'Recorrer las reglas en orden', pasos: [{ k: 'si', t: '¿Se cumple el antecedente?', si: 'devolver su clase y parar', no: 'siguiente regla' }] },
       { k: 'out', t: 'Si ninguna se cumple: clase por defecto' },
     ],
+    ejemplo: 'PasoLista',
     secciones: [
       {
         t: 'Ejemplos',

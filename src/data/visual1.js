@@ -64,7 +64,7 @@ export const VISUAL1 = {
         ],
       },
       { ti: 'Dificultades', chips: ['eficiencia', 'recursos', 'generalización', 'representación'] },
-      { clave: 'Grandes BD → [[si-grandes-bd|estratificación]] · clases desiguales → [[no-balanceados|SMOTE]] · árboles más pequeños → [[si-modelos]]' },
+      { clave: 'Se usa en: [[si-aplicaciones|grandes BD y árboles]] · y para equilibrar [[no-balanceados|clases desiguales]]' },
     ],
   },
   muestreo: {
@@ -87,14 +87,18 @@ export const VISUAL1 = {
     entrada: 'mixta', caja: 'blanca', devuelve: 'datos',
     fuertes: ['Simple y rápido', 'Genera muestras bootstrap'],
     debiles: ['Ignora la estructura', 'Duplicados (con reemplazo)'],
-    parametros: ['sampleSizePercent (100)', 'noReplacement', 'randomSeed', 'invertSelection'],
+    parametros: ['M (tamaño de la muestra)', 'con / sin reemplazamiento', 'semilla'],
     weka: 'Resample',
+    wekaBloques: [
+      { ti: 'Ruta', flujo: [{ t: 'Preprocess' }, { t: 'Filter' }, { t: 'unsupervised' }, { t: 'instance' }, { t: 'Resample' }] },
+      { matriz: { cab: ['Parámetro', 'Qué hace'], filas: [['sampleSizePercent', 'M como % de N (100 por defecto)'], ['noReplacement', 'False = con reemplazamiento'], ['randomSeed', 'semilla'], ['invertSelection', 'quedarse con los no elegidos']] } },
+    ],
     bloques: [
+      { cifras: [{ v: 'M < N', t: 'se eligen M de los N ejemplos', c: 'prep' }, { v: 'M = N', t: 'con reemplazamiento = bootstrap ([[bagging]])', c: 'cat' }] },
       { vs: [
         { t: 'SRSWOR', i: '↛', items: ['sin reemplazamiento', 'sin repetidos'] },
-        { t: 'SRSWR', i: '↺', items: ['con reemplazamiento', 'repetidos posibles', '100 % → bootstrap'] },
+        { t: 'SRSWR', i: '↺', items: ['con reemplazamiento', 'repetidos posibles'] },
       ] },
-      { ti: 'Ruta en Weka', flujo: [{ t: 'Preprocess' }, { t: 'Filter' }, { t: 'unsupervised' }, { t: 'instance' }, { t: 'Resample' }] },
     ],
   },
   'muestreo-clusters': {
@@ -117,8 +121,15 @@ export const VISUAL1 = {
 
   'seleccion-prototipos': {
     bloques: [
-      { ti: 'Uso 1 · mejorar el 1-NN', flujo: [{ i: 'datos', t: 'D' }, { t: 'TR + TS' }, { t: 'Selector', s: 'sobre TR' }, { i: 'datos', t: 'TSS' }, { i: '1-NN', t: 'Clasificar TS' }] },
-      { ti: 'Uso 2 · conjunto de entrenamiento de otro algoritmo', flujo: [{ t: 'TR' }, { t: 'Selector' }, { i: 'datos', t: 'TSS' }, { i: 'arbol', t: 'Otro algoritmo', s: 'p. ej. [[c45]]' }, { t: 'Modelo' }] },
+      { demo: 'DiagramaPrototipos' },
+      { ti: 'Antes de seguir: ¿qué es el borde?', demo: 'Borde' },
+      {
+        ti: '¿Por qué CNN guarda las mal clasificadas?',
+        vs: [
+          { t: 'S clasifica mal a x', c: 'si', i: '✗', items: ['S no tiene información de esa zona', 'x está cerca de la frontera (borde)', '→ se **guarda**: hace falta para dibujar la frontera'] },
+          { t: 'S clasifica bien a x', c: 'no', i: '✓', items: ['su zona ya está cubierta por S', 'x es redundante (interior)', '→ se **descarta**'] },
+        ],
+      },
       {
         ti: 'Propiedades',
         matriz: {
@@ -169,7 +180,14 @@ export const VISUAL1 = {
     fuertes: ['Gran reducción', 'Conserva la frontera', 'Simple'],
     debiles: ['Depende del orden', 'Conserva el ruido', 'Solo deja el borde'],
     parametros: ['Orden de presentación'],
-    bloques: [{ matriz: { cab: ['Dirección', 'Tipo', 'Evaluación'], filas: [['Incremental', 'Condensación', 'Filtro']] } }],
+    bloques: [
+      { matriz: { cab: ['Dirección', 'Tipo', 'Evaluación'], filas: [['Incremental', 'Condensación', 'Filtro']] } },
+      { vs: [
+        { t: 'Mal clasificada → se añade', c: 'si', items: ['S no conoce esa zona', 'suele ser **borde**: cerca de la otra clase'] },
+        { t: 'Bien clasificada → se descarta', c: 'no', items: ['ya la representan otras de S', 'suele ser **interior**'] },
+      ] },
+      { aviso: ['El ruido también se guarda', 'Un punto ruidoso (rojo rodeado de azules) siempre lo clasifica mal S → CNN lo añade. Por eso CNN no limpia ruido; ENN sí.'] },
+    ],
   },
   enn: {
     ...CNN_FICHA,
@@ -205,44 +223,45 @@ export const VISUAL1 = {
   },
   ssma: { ...CNN_FICHA, fuertes: ['Reducción muy alta'], debiles: ['Coste elevado'], parametros: ['Evolutivo + búsqueda local'] },
 
+  'si-aplicaciones': {
+    bloques: [
+      { clave: 'No son selectores nuevos: **usan** uno ([[cnn]], [[ib3]], [[chc]]…) dentro de una estrategia mayor' },
+      {
+        vs: [
+          { t: '[[si-grandes-bd|Grandes bases de datos]]', i: 'datos', c: 'prep', items: ['problema: SI cuesta O(n²)–O(n³)', 'solución: estratos pequeños', 'KDD Cup’99: de 5 h a segundos'] },
+          { t: '[[si-modelos|Árboles y reglas]]', i: 'arbol-podado', c: 'cat', items: ['problema: árboles enormes', 'solución: entrenar C4.5 con lo seleccionado', 'CHC: de 252 a 9 reglas'] },
+        ],
+      },
+    ],
+  },
   'si-grandes-bd': {
     entrada: 'mixta', caja: 'blanca', devuelve: 'datos',
     fuertes: ['Algoritmos caros con 500 000 filas', 'Paralelizable'],
     debiles: ['Cada estrato ve solo una parte'],
     parametros: ['Nº de estratos: 100, 200, 300'],
     bloques: [
-      { ti: 'KDD Cup’99', cifras: [{ v: '494 022', t: 'instancias' }, { v: '41', t: 'atributos' }, { v: '23', t: 'clases' }] },
       {
-        ti: '% de reducción y % de acierto (st = nº de estratos)',
-        barras: {
-          series: [{ n: '% reducción', c: 'prep' }, { n: '% acierto entrenamiento', c: 'concepto' }, { n: '% acierto test', c: 'cat' }],
-          unidad: ' %',
-          max: 100,
-          filas: [
-            { e: '1-NN completo', v: [null, 99.91, 99.91], d: true },
-            { e: 'CNN st 100', v: [81.61, 99.3, 99.27] }, { e: 'CNN st 200', v: [65.57, 99.9, 99.15] }, { e: 'CNN st 300', v: [63.38, 99.89, 98.23] },
-            { e: 'IB2 st 100', v: [82.01, 97.9, 98.19] }, { e: 'IB2 st 200', v: [65.66, 99.93, 98.71] }, { e: 'IB2 st 300', v: [60.31, 99.89, 99.03] },
-            { e: 'IB3 st 100', v: [78.82, 93.83, 98.82] }, { e: 'IB3 st 200', v: [98.27, 98.37, 98.93] }, { e: 'IB3 st 300', v: [97.97, 97.92, 99.27] },
-            { e: 'CHC st 100', v: [99.68, 99.21, 99.43], d: true }, { e: 'CHC st 200', v: [99.48, 99.92, 99.23] }, { e: 'CHC st 300', v: [99.28, 99.93, 99.19] },
-          ],
-        },
+        ti: 'La estrategia',
+        flujo: [
+          { i: 'datos', t: 'Conjunto D', s: 'n instancias' },
+          { t: 'T₁ … Tₜ', s: 't estratos disjuntos, misma proporción de clases' },
+          { t: 'TRᵢ / TSᵢ', s: 'cada estrato se separa' },
+          { t: 'SI en cada TRᵢ', s: 'coste (n/t)² en vez de n²' },
+          { i: 'datos', t: 'SS₁ ∪ … ∪ SSₜ', s: 'conjunto reducido' },
+        ],
       },
+      { ti: 'KDD Cup’99', cifras: [{ v: '494 022', t: 'instancias' }, { v: '41', t: 'atributos' }, { v: '23', t: 'clases' }, { v: '18 568 s', t: '1-NN con todo (≈ 5 h)', c: 'no' }] },
+      { clave: 'Para qué sirve esta gráfica: comprobar si estratificar sale a cuenta. Respuesta: el tiempo baja de horas a segundos y el acierto en test se queda por encima del 98 %. Más estratos ⇒ estratos más pequeños ⇒ más rápido, pero CNN e IB2 reducen menos.' },
       {
-        ti: 'Tiempo en segundos (escala logarítmica)',
-        barras: {
-          series: [{ n: 'segundos', c: 'no' }],
-          unidad: ' s',
-          log: true,
-          filas: [
-            { e: '1-NN completo', v: [18568], d: true },
-            { e: 'CNN st 100', v: [8] }, { e: 'CNN st 200', v: [3] }, { e: 'CNN st 300', v: [1] },
-            { e: 'IB2 st 100', v: [0] }, { e: 'IB2 st 200', v: [3] }, { e: 'IB2 st 300', v: [2] },
-            { e: 'IB3 st 100', v: [2] }, { e: 'IB3 st 200', v: [0] }, { e: 'IB3 st 300', v: [0] },
-            { e: 'CHC st 100', v: [1960] }, { e: 'CHC st 200', v: [418] }, { e: 'CHC st 300', v: [208] },
-          ],
-        },
+        ti: 'Resultados con 100, 200 y 300 estratos',
+        series: [{ n: '100 estratos', c: '#9fb6d8' }, { n: '200 estratos', c: '#5d87c2' }, { n: '300 estratos', c: '#1f4f8f' }],
+        paneles: [
+          { t: '% de reducción', min: 50, max: 100, unidad: ' %', grupos: [{ n: 'CNN', v: [81.61, 65.57, 63.38] }, { n: 'IB2', v: [82.01, 65.66, 60.31] }, { n: 'IB3', v: [78.82, 98.27, 97.97] }, { n: 'CHC', v: [99.68, 99.48, 99.28] }], nota: 'CHC e IB3 (200/300) reducen ~98–99 %' },
+          { t: '% acierto en test (eje de 97 a 100)', min: 97, max: 100, unidad: ' %', ref: { v: 99.91, n: '1-NN completo' }, grupos: [{ n: 'CNN', v: [99.27, 99.15, 98.23] }, { n: 'IB2', v: [98.19, 98.71, 99.03] }, { n: 'IB3', v: [98.82, 98.93, 99.27] }, { n: 'CHC', v: [99.43, 99.23, 99.19] }], nota: 'todos pierden menos de 2 puntos' },
+          { t: 'tiempo en segundos (escala log)', log: true, max: 18568, unidad: ' s', ref: { v: 18568, n: '1-NN completo' }, grupos: [{ n: 'CNN', v: [8, 3, 1] }, { n: 'IB2', v: [0, 3, 2] }, { n: 'IB3', v: [2, 0, 0] }, { n: 'CHC', v: [1960, 418, 208] }], nota: 'CHC: el más lento, pero 10× más rápido que 1-NN' },
+          { t: '% acierto en entrenamiento (93 a 100)', min: 93, max: 100, unidad: ' %', ref: { v: 99.91, n: '1-NN' }, grupos: [{ n: 'CNN', v: [99.3, 99.9, 99.89] }, { n: 'IB2', v: [97.9, 99.93, 99.89] }, { n: 'IB3', v: [93.83, 98.37, 97.92] }, { n: 'CHC', v: [99.21, 99.92, 99.93] }] },
+        ],
       },
-      { clave: '1-NN completo: 5 h · con estratos: segundos · CHC: el más lento pero el que más reduce' },
     ],
   },
   'si-modelos': {
@@ -251,25 +270,27 @@ export const VISUAL1 = {
     debiles: ['Algunos selectores hunden el acierto'],
     parametros: ['Selector', 'Nº de estratos'],
     bloques: [
+      {
+        ti: 'La idea',
+        flujo: [
+          { i: 'datos', t: 'Datos grandes' },
+          { t: 'SI estratificada', s: 'CNN, IB3, CHC…' },
+          { i: 'datos', t: 'TSS', s: 'pocas instancias' },
+          { i: 'arbol', t: 'C4.5 sobre TSS' },
+          { i: 'arbol-podado', t: 'Árbol pequeño', s: 'menos reglas, más legibles' },
+        ],
+      },
       { chips: ['alternativa / complemento a la [[poda]] (que elimina nodos)'] },
+      { clave: 'Para qué sirve esta gráfica: ver qué selector deja un árbol pequeño sin perder acierto. CHC: de 252 a 9 reglas con 97,5 % en test. DROP1 deja 3 reglas pero acierta un 35 %: reducir no basta.' },
       {
         ti: 'KDD Cup’99 · 100 estratos · C4.5 sobre lo seleccionado',
-        barras: {
-          series: [{ n: 'nº reglas', c: 'num' }, { n: '% reducción', c: 'prep' }, { n: '% acierto trn', c: 'concepto' }, { n: '% acierto test', c: 'cat' }],
-          unidad: ['', ' %', ' %', ' %'],
-          max: 252,
-          filas: [
-            { e: 'C4.5', v: [252, null, 99.97, 99.94], d: true },
-            { e: 'Cnn Strat', v: [83, 81.61, 98.48, 96.43] },
-            { e: 'Drop1 Strat', v: [3, 99.97, 38.63, 34.97] },
-            { e: 'Drop2 Strat', v: [82, 76.66, 81.4, 76.58] },
-            { e: 'Drop3 Strat', v: [49, 56.74, 77.02, 75.38] },
-            { e: 'Ib2 Strat', v: [48, 82.01, 95.81, 95.05] },
-            { e: 'Ib3 Strat', v: [74, 78.92, 99.13, 96.77] },
-            { e: 'Icf Strat', v: [68, 23.62, 99.98, 99.53] },
-            { e: 'CHC Strat', v: [9, 99.68, 98.97, 97.53], d: true },
-          ],
-        },
+        series: [{ n: 'valor', c: 'cat' }],
+        paneles: [
+          { t: 'nº de reglas (hojas)', max: 252, ref: { v: 252, n: 'C4.5 con todo' }, grupos: [{ n: 'Cnn', v: [83] }, { n: 'Drop1', v: [3] }, { n: 'Drop2', v: [82] }, { n: 'Drop3', v: [49] }, { n: 'Ib2', v: [48] }, { n: 'Ib3', v: [74] }, { n: 'Icf', v: [68] }, { n: 'CHC', v: [9] }] },
+          { t: '% acierto en test', min: 30, max: 100, unidad: ' %', ref: { v: 99.94, n: 'C4.5' }, grupos: [{ n: 'Cnn', v: [96.43] }, { n: 'Drop1', v: [34.97] }, { n: 'Drop2', v: [76.58] }, { n: 'Drop3', v: [75.38] }, { n: 'Ib2', v: [95.05] }, { n: 'Ib3', v: [96.77] }, { n: 'Icf', v: [99.53] }, { n: 'CHC', v: [97.53] }] },
+          { t: '% de reducción de instancias', max: 100, unidad: ' %', grupos: [{ n: 'Cnn', v: [81.61] }, { n: 'Drop1', v: [99.97] }, { n: 'Drop2', v: [76.66] }, { n: 'Drop3', v: [56.74] }, { n: 'Ib2', v: [82.01] }, { n: 'Ib3', v: [78.92] }, { n: 'Icf', v: [23.62] }, { n: 'CHC', v: [99.68] }] },
+          { t: '% acierto en entrenamiento', min: 30, max: 100, unidad: ' %', ref: { v: 99.97, n: 'C4.5' }, grupos: [{ n: 'Cnn', v: [98.48] }, { n: 'Drop1', v: [38.63] }, { n: 'Drop2', v: [81.4] }, { n: 'Drop3', v: [77.02] }, { n: 'Ib2', v: [95.81] }, { n: 'Ib3', v: [99.13] }, { n: 'Icf', v: [99.98] }, { n: 'CHC', v: [98.97] }] },
+        ],
       },
       {
         ti: 'Reglas con Adult (2 clases · 30 132 inst. · 14 variables)',
@@ -402,8 +423,8 @@ export const VISUAL1 = {
     bloques: [
       {
         matriz: {
-          cab: ['', '[[mdlp|MDLP]] · Fayyad e Irani 1993', '[[chimerge|ChiMerge]] · Kerber 1992'],
-          filas: [['Tipo', 'división · top-down', 'mezcla · bottom-up'], ['Mide', 'entropía / ganancia', 'χ² entre vecinos'], ['Para', 'umbral MDL (δ)', 'significancia + máx. intervalos']],
+          cab: ['', '[[mdlp|MDLP]] · Fayyad e Irani 1993', '[[chimerge|ChiMerge]] · Kerber 1992', '[[oner|OneR (1R)]] · Holte 1993'],
+          filas: [['Tipo', 'división · top-down', 'mezcla · bottom-up', 'binning supervisado'], ['Mide', 'entropía / ganancia', 'χ² entre vecinos', 'clase mayoritaria del cubo'], ['Para', 'umbral MDL (δ)', 'significancia + máx. intervalos', 'tamaño mínimo de cubo']],
         },
       },
     ],

@@ -6,6 +6,8 @@ import Esquema from './Esquema.jsx';
 import RelGrafo from './RelGrafo.jsx';
 import { Picto, NOMBRE_PICTO } from './Iconos.jsx';
 import BloquesVisuales from './Visual.jsx';
+import { TrazaProvider } from '../lib/traza.jsx';
+import { SINCRONIZADOS } from '../ejemplos/index.js';
 import { entrada } from '../lib/anim.js';
 
 const TIPOS = { familia: 'Familia', algoritmo: 'Algoritmo', concepto: 'Concepto' };
@@ -47,10 +49,9 @@ function TarjetaVisual({ n }) {
           ))}
         </div>
       </div>
-      {(v.parametros || v.weka) && (
+      {v.parametros && (
         <div className="tv-pie">
-          {(v.parametros || []).map((p, i) => <span key={i} className="ficha-chip param"><Texto t={p} /></span>)}
-          {v.weka && <span className="ficha-chip weka" title="Nombre en Weka">Weka · {v.weka}</span>}
+          {v.parametros.map((p, i) => <span key={i} className="ficha-chip param"><Texto t={p} /></span>)}
         </div>
       )}
     </section>
@@ -177,7 +178,8 @@ export default function Ficha({ id }) {
 
   if (v) {
     return (
-      <article ref={ref} key={id}>
+      <TrazaProvider key={id}>
+      <article ref={ref}>
         {cabecera}
         {(n.esquema || v.devuelve) && (
           <div className={n.esquema && v.devuelve ? 'lamina ancho' : 'columna'} style={{ marginTop: 26 }}>
@@ -206,13 +208,26 @@ export default function Ficha({ id }) {
             </section>
           )}
           {n.ejemplo && (
-            <section className="seccion">
+            <section className="seccion" id="ejemplo">
               <h2>Pruébalo</h2>
-              <Demo nombre={n.ejemplo} />
+              {n.esquema && SINCRONIZADOS.has(n.ejemplo) ? (
+                <div className="con-esquema">
+                  <Demo nombre={n.ejemplo} />
+                  <aside><Esquema pasos={n.esquema} compacto titulo="Paso actual" /></aside>
+                </div>
+              ) : (
+                <Demo nombre={n.ejemplo} />
+              )}
             </section>
           )}
           {hijosBloque}
           {relaciones}
+          {(v.weka || v.wekaBloques) && (
+            <details className="weka">
+              <summary>En Weka{v.weka ? `: ${v.weka}` : ''}</summary>
+              {v.wekaBloques && <BloquesVisuales bloques={v.wekaBloques} />}
+            </details>
+          )}
           {n.secciones?.length > 0 && (
             <details className="detalle-texto">
               <summary>Detalle de las diapositivas en texto</summary>
@@ -229,6 +244,7 @@ export default function Ficha({ id }) {
           {paginacion}
         </div>
       </article>
+      </TrazaProvider>
     );
   }
 

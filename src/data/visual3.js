@@ -54,11 +54,14 @@ export const VISUAL3 = {
         },
       },
       { cifras: [{ v: '0,8 / 0,2', t: 'normalizado (diapositiva) → no se juega', c: 'no' }] },
+      { clave: 'Cómo se [[discretizacion|discretiza]] cambia mucho el acierto: iris 96 % (gaussiana) · 77 % (2 intervalos) · 94 % (3 intervalos) — detalle en «En Weka»' },
+    ],
+    wekaBloques: [
       {
-        ti: 'Iris en Weka (150 registros, 4 atributos, 3 clases, 10-cv)',
+        ti: 'Iris (150 registros, 4 atributos, 3 clases, 10-cv)',
         barras: { series: [{ n: '% acierto', c: 'cat' }], unidad: ' %', max: 100, filas: [{ e: 'Gaussiana', v: [96], d: true }, { e: 'Igual anchura, 2 int.', v: [77.33] }, { e: 'Igual anchura, 3 int.', v: [94] }] },
       },
-      { chips: ['Counts con total 52 / 53 = recuentos con Laplace', 'cómo se [[discretizacion|discretiza]] cambia el resultado'] },
+      { chips: ['144/150 · 116/150 · 141/150 bien clasificados', 'Counts con total 52 / 53 = recuentos con Laplace', 'el nº de intervalos se eligió con un análisis exploratorio'] },
     ],
   },
   'redes-bayesianas': {
@@ -122,8 +125,12 @@ export const VISUAL3 = {
     ],
     bloques: [
       { ti: 'La arquitectura depende de', tarjetas: [{ i: '≡', t: 'Nº de capas', s: 'más capas → funciones más complejas' }, { i: '●●●', t: 'Neuronas por capa', s: 'las ocultas: difícil' }, { i: '⇄', t: 'Conexiones', s: 'anterior, previas o misma capa' }] },
+      { chips: ['numéricos normalizados a [−1, 1]', '1 epoch = toda la BD', 'gradiente descendente'] },
+      { ti: 'Regresión con CPU (100 epochs)', cifras: [{ v: '6,10 %', t: 'EMA' }, { v: '6,98 %', t: 'EAR', c: 'si' }] },
+    ],
+    wekaBloques: [
       {
-        ti: 'Diseño en Weka',
+        ti: 'Diseño de la red',
         matriz: {
           cab: ['Capa', 'Neuronas'],
           filas: [
@@ -133,8 +140,7 @@ export const VISUAL3 = {
           ],
         },
       },
-      { chips: ['BD lentes: 0 · a · t · «a,t»', 'numéricos normalizados a [−1, 1]', '1 epoch = toda la BD', 'gradiente descendente'] },
-      { ti: 'Regresión con CPU (100 epochs)', cifras: [{ v: '6,10 %', t: 'EMA' }, { v: '6,98 %', t: 'EAR', c: 'si' }] },
+      { chips: ['BD lentes: capas ocultas 0 · a · t · «a,t»'] },
     ],
   },
 
@@ -182,6 +188,7 @@ export const VISUAL3 = {
     weka: 'Bagging',
     bloques: [
       { ti: 'Fuentes de error', tarjetas: [{ i: '≈', t: 'Ruido', s: 'en la función objetivo' }, { i: '↗', t: 'Sesgo', s: 'no puede aprenderla' }, { i: '↕', t: 'Varianza', s: 'por el muestreo', c: 'si' }] },
+      { ti: 'La muestra bootstrap', demo: 'Bootstrap' },
       { clave: 'Bagging ataca la **varianza** · fronteras de 4 árboles / 3 redes → combinación más suave' },
     ],
   },
@@ -211,9 +218,10 @@ export const VISUAL3 = {
     ],
     bloques: [
       { chips: ['para si εₜ > 0,5', 'Zₜ normaliza', 'acierta → peso × e^(−α)', 'falla → peso × e^(α)'] },
-      { ti: 'Ejemplo de las diapositivas', barras: { series: [{ n: 'ε', c: 'no' }, { n: 'α', c: 'si' }], max: 1, filas: [{ e: 'Ronda 1', v: [0.3, 0.42] }, { e: 'Ronda 2', v: [0.21, 0.65] }, { e: 'Ronda 3', v: [0.14, 0.92] }] } },
-      { chips: ['nci.arff · C4.5 · 5-cv en Weka'] },
+      { ti: 'Ejemplo de las diapositivas (10 puntos, 4 rondas)', demo: 'AdaBoost' },
+      { ti: 'Valores de las diapositivas', barras: { series: [{ n: 'ε', c: 'no' }, { n: 'α', c: 'si' }], max: 1, filas: [{ e: 'Ronda 1', v: [0.3, 0.42] }, { e: 'Ronda 2', v: [0.21, 0.65] }, { e: 'Ronda 3', v: [0.14, 0.92] }] } },
     ],
+    wekaBloques: [{ chips: ['Bagging y AdaBoostM1 sobre nci.arff con C4.5 y 5-cv'] }],
   },
   binarizacion: {
     bloques: [

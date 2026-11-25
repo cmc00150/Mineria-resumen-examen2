@@ -107,7 +107,8 @@ export const VISUAL4 = {
     entrada: 'mixta', caja: 'blanca', devuelve: 'arbol',
     fuertes: ['Interpretable', 'No lineal por tramos', 'CPU: EAR 20,7 % vs 39,3 %'],
     debiles: ['Escalones → suavizado', 'Necesita poda'],
-    parametros: ['poda', 'useUnsmoothed'],
+    parametros: ['poda', 'suavizado'],
+    wekaBloques: [{ chips: ['useUnsmoothed controla el suavizado', 'CPU: sin suavizar, poda = 1'] }],
     weka: 'M5P (buildRegressionTree) · REPTree',
     formulas: [['Reducción de la desviación', 'SDR = sd(T) - \\sum_i \\tfrac{|T_i|}{|T|}\\, sd(T_i)']],
     bloques: [

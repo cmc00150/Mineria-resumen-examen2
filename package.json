@@ -1,0 +1,26 @@
+{
+  "name": "atlas-mineria-datos",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Atlas interactivo de minería de datos predictiva: preparación de datos, clasificación y regresión (Temas 3-8).",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "animejs": "^4.0.2",
+    "d3-hierarchy": "^3.1.2",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
+    "katex": "^0.16.11",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.170.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.0.0"
+  }
+}

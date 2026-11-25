@@ -100,34 +100,26 @@ export const VISUAL2 = {
     entrada: 'discreta', caja: 'blanca', devuelve: 'arbol',
     fuertes: ['Fáciles y eficientes', 'Reglas interpretables', 'Escalan bien', 'Toleran el ruido'],
     debiles: ['Continuos: difícil', 'Solo cortes rectangulares', 'Valores perdidos', 'Sobreaprendizaje', 'No ven correlaciones'],
-    infografia: 'InfoArboles',
     formulas: [['Mejor atributo', 'X^* = \\arg\\max_X \\big(H(C) - H(C\\mid X)\\big)']],
     bloques: [
-      {
-        ti: 'Partes de un árbol',
-        tarjetas: [
-          { i: '◉', t: 'Raíz', s: 'primera prueba, con todos los ejemplos' },
-          { i: '◇', t: 'Nodo interno', s: 'prueba sobre un atributo' },
-          { i: '⑂', t: 'Rama', s: 'un resultado de la prueba' },
-          { i: '●', t: 'Hoja', s: 'la clase (o el número) que se predice' },
-          { i: '⤳', t: 'Camino', s: 'raíz → hoja = una regla' },
-        ],
-      },
+      { ti: 'Cómo se lee: clasificar un día', demo: 'ArbolTenis' },
+      { chips: ['nodo = prueba sobre un atributo', 'rama = un valor del atributo', 'hoja = clase predicha', 'camino raíz → hoja = una regla', 'caso más simple: [[zeror]] = solo una hoja'] },
       {
         ti: 'Ciclo de vida',
         flujo: [
           { i: 'datos', t: 'Datos', s: '[[discretizacion|discretizar]] continuos' },
-          { i: 'arbol', t: '[[tdidt|Construir]]', s: '[[criterios-division|criterio de división]]' },
+          { i: 'arbol', t: '[[tdidt|Construir]]', s: 'divide y vencerás con un [[criterios-division|criterio de división]]' },
           { i: 'arbol', t: 'Parar antes', s: 'pre-[[poda]]' },
-          { i: 'arbol-podado', t: 'Recortar', s: 'post-[[poda]]' },
+          { i: 'arbol-podado', t: 'Recortar', s: 'post-[[poda]]: quitar ruido' },
           { i: 'reglas', t: '[[reglas-arbol|Reglas]]', s: 'un camino = una regla' },
         ],
       },
       {
-        ti: 'Cada algoritmo sigue una estrategia',
+        ti: 'Los árboles del temario',
         matriz: {
           cab: ['', 'Criterio de división', 'Ramas', 'Poda', 'Datos', 'Hoja'],
           filas: [
+            ['[[tdidt]]', 'cualquiera (es el esquema)', '—', '—', '—', '—'],
             ['[[id3]]', 'ganancia', 'una por valor', 'no', 'discretos', 'clase'],
             ['[[c45]]', 'ratio de ganancia', '2 (≤θ / >θ) o varias', 'pre y post', 'continuos, perdidos', 'clase'],
             ['[[cart]]', 'Gini (mínimo)', 'siempre 2', 'coste-complejidad', 'mixtos', 'clase o número'],
@@ -136,34 +128,42 @@ export const VISUAL2 = {
           ],
         },
       },
-      { clave: 'Se agrupan por la medida que usan: entropía (ID3, C4.5) · Gini (CART) · desviación típica (regresión). Todo en [[criterios-division]].' },
-      { ti: 'Clasificar un día', demo: 'ArbolTenis' },
+      { clave: 'Se agrupan por cómo miden el desorden: entropía (ID3, C4.5) · Gini (CART) · desviación típica (regresión) → [[criterios-division]]. Mejor árbol: más acierto y menos complejo (navaja de Occam).' },
+      { ti: 'Cómo parten el espacio', demo: 'ParticionEspacio' },
+      { clave: 'Los cortes son paralelos a los ejes: una frontera diagonal se aproxima con una escalera de cortes. Solución: árboles oblicuos o variables construidas.' },
       {
         ti: 'Crédito: el orden de los atributos cambia el árbol',
         barras: { series: [{ n: 'reglas', c: 'cat' }, { n: 'premisas por regla', c: 'concepto' }], filas: [{ e: '1.º árbol', v: [6, 2.33], d: true }, { e: '2.º árbol', v: [8, 2.5] }, { e: '3.º árbol', v: [6, 2.5] }] },
       },
-      { ti: 'Particiones', demo: 'ParticionEspacio' },
     ],
   },
   'criterios-division': {
     entrada: 'mixta', caja: 'blanca', devuelve: 'arbol',
     bloques: [
+      { clave: 'Todos responden a la misma pregunta: **¿cuánto se ordena la clase si divido por este atributo?** = desorden antes − desorden medio de las ramas. Solo cambia cómo se mide el desorden.' },
+      { demo: 'Impureza' },
       {
-        ti: 'Tres estrategias',
-        tarjetas: [
-          { i: 'H', t: 'Entropía', s: '[[id3]] ganancia · [[c45]] ratio', c: 'cat' },
-          { i: 'G', t: 'Gini', s: '[[cart]] · gini_split mínimo', c: 'concepto' },
-          { i: 'σ', t: 'Desviación típica', s: '[[arbol-regresion]] · SDR', c: 'num' },
+        ti: 'Las fórmulas',
+        formulas: [
+          ['Entropía de un nodo', 'H(S) = -\\sum_i p_i \\log_2 p_i'],
+          ['Ganancia · ID3', 'G(S,A) = H(S) - \\sum_v \\tfrac{|S_v|}{|S|}\\, H(S_v)'],
+          ['Ratio de ganancia · C4.5', '\\text{ratio}(S,A) = \\dfrac{G(S,A)}{-\\sum_v \\tfrac{|S_v|}{|S|}\\log_2 \\tfrac{|S_v|}{|S|}}'],
+          ['Gini de un nodo · CART', 'gini(T) = 1 - \\sum_j p_j^2'],
+          ['Gini de la división · CART', 'gini_{split} = \\sum_i \\tfrac{N_i}{N}\\, gini(T_i)'],
+          ['SDR · árboles de regresión', 'SDR = sd(T) - \\sum_i \\tfrac{|T_i|}{|T|}\\, sd(T_i)'],
         ],
       },
       {
-        vs: [
-          { t: 'Ganancia (ID3)', c: 'no', i: '✗', items: ['favorece atributos con muchos valores', 'un identificador tendría ganancia máxima'] },
-          { t: 'Ratio de ganancia (C4.5)', c: 'si', i: '✓', items: ['divide la ganancia entre la información de la división', 'penaliza los muchos valores'] },
-        ],
+        matriz: {
+          cab: ['', 'Desorden de un nodo', 'Se elige', 'Ventaja', 'Problema'],
+          filas: [
+            ['Ganancia · [[id3]]', 'entropía', 'la mayor', 'se mide en bits', 'favorece atributos con muchos valores (un identificador gana siempre)'],
+            ['Ratio · [[c45]]', 'ganancia ÷ información de la división', 'el mayor, entre los de ganancia ≥ media', 'penaliza muchas ramas pequeñas', 'si la información de la división ≈ 0 el ratio se dispara → filtro de la media'],
+            ['Gini · [[cart]]', '1 − Σ p²', 'el menor gini_split', 'sin logaritmos', 'con 2 ramas hay que probar todas las agrupaciones'],
+            ['SDR · [[arbol-regresion|regresión]]', 'desviación típica', 'el mayor', 'objetivo numérico', '—'],
+          ],
+        },
       },
-      { ti: 'Misma idea, distinto desorden', demo: 'CurvaEntropia' },
-      { clave: 'SDR es la ganancia con desviación típica en lugar de entropía: «desorden antes» − «desorden medio después».' },
     ],
   },
   tdidt: {
@@ -173,8 +173,6 @@ export const VISUAL2 = {
     parametros: ['Medida para elegir atributo'],
     bloques: [
       { ti: 'Paradas', tarjetas: [{ i: '■', t: 'Una sola clase', s: 'o casi' }, { i: '∅', t: 'Sin atributos', s: 'voto mayoritario' }, { i: '0', t: 'Sin ejemplos' }] },
-      { ti: 'Resultado con crédito (6 hojas = 6 reglas)', reglas: CREDITO_ARBOL },
-      { ti: 'Construcción con los datos de crédito (diapositivas)', demo: 'ArbolCredito' },
     ],
   },
   id3: {
@@ -187,10 +185,13 @@ export const VISUAL2 = {
       ['Entropía', 'H(S) = -\\sum_{i} p_i \\log_2 p_i'],
       ['Ganancia', 'G(S,A) = H(S) - \\sum_{v} \\tfrac{|S_v|}{|S|} H(S_v)'],
     ],
-    infografia: 'InfoID3',
     bloques: [
-      { ti: 'Tenis · rama soleado', barras: { series: [{ n: 'ganancia', c: 'cat' }], filas: [{ e: 'humidity', v: [0.971], d: true }, { e: 'temperature', v: [0.571] }, { e: 'windy', v: [0.02] }] } },
-      { ti: 'Calculadora de ganancia', demo: 'Ganancia' },
+      { clave: 'Es [[tdidt]] con la **ganancia** como medida (cómo se calcula: [[criterios-division]]). Una rama por cada valor, solo atributos discretos y sin poda.' },
+      {
+        ti: 'Su sesgo: ¿género o altura? (alturas, diapositivas)',
+        barras: { series: [{ n: 'ganancia (log₁₀)', c: 'cat' }], filas: [{ e: 'género · 2 valores', v: [0.0969] }, { e: 'altura · 6 rangos', v: [0.3983], d: true }] },
+      },
+      { clave: 'ID3 elige la altura: con más valores, cada rama tiene menos ejemplos y queda más pura. Llevado al extremo, un identificador sería el «mejor» atributo. Pruébalo abajo con «Tenis + columna día»; [[c45]] lo corrige con el ratio.' },
       { ti: 'Refinamientos (→ C4.5)', chips: ['cuándo parar', 'atributos continuos', 'otras medidas', 'atributos con coste', 'ejemplos incompletos'] },
     ],
   },
@@ -201,23 +202,7 @@ export const VISUAL2 = {
     parametros: ['Confianza de poda', 'Mín. ejemplos por hoja'],
     weka: 'J48',
     avisos: [['Ratio de alturas: /13 → /15', 'La diapositiva calcula H(2/13, 2/13, 3/13, 4/13, 2/13), pero la altura tiene 6 rangos con 2, 2, 3, 4, 2 y 2 personas: debe ser H(2/15, 2/15, 3/15, 4/15, 2/15, 2/15). Y el último término pone log(13/3) en vez de log(13/2).']],
-    formulas: [
-      ['Ratio de ganancia', 'GainRatio(S,A) = \\dfrac{G(S,A)}{H\\big(\\tfrac{|S_1|}{|S|},\\dots,\\tfrac{|S_v|}{|S|}\\big)}'],
-      ['Corte numérico', 'x \\le \\theta \\;\\text{ o }\\; x > \\theta,\\quad \\theta = \\arg\\max G'],
-    ],
-    infografia: 'InfoC45',
-    bloques: [
-      { ti: 'Familia', chips: ['C4.5', 'C4.5 sin poda', 'C4.5-reglas', 'comercial: See5 / C5.0'] },
-      {
-        ti: 'Tests en los nodos',
-        tarjetas: [{ i: '⇄', t: 'Booleana', s: '2 ramas' }, { i: '⋔', t: 'Categórica', s: 'varias (se agrupan las de igual clase)' }, { i: '≤θ', t: 'Numérica', s: '2 ramas' }],
-      },
-      { ti: 'Para cuando', chips: ['sin variables o ejemplos', 'una sola clase', 'pocos ejemplos (umbral)'] },
-      { ti: 'Umbral para un atributo continuo', demo: 'UmbralC45' },
-      { ti: 'Umbral', chips: ['ordenar valores', 'probar cada xᵢ (i ≥ 2)', 'solo donde cambia la clase', 'el atributo puede repetirse más abajo', 'la discretización no se propaga'] },
-      { ti: 'Hoja', chips: ['clase mayoritaria de la rama'] },
-      { ti: 'Poda', vs: [{ t: 'Pre-poda', items: ['poca confianza → no dividir', 'parar si sube el error de validación'] }, { t: 'Post-poda (preferida)', c: 'si', items: ['reemplazar subárbol por hoja', 'elevar subárbol', 'mín. 2 ejemplos por hoja'] }] },
-    ],
+    infografia: 'HiloC45',
   },
   cart: {
     entrada: 'mixta', caja: 'blanca', devuelve: 'arbol-binario',
@@ -229,7 +214,6 @@ export const VISUAL2 = {
       ['Gini', 'gini(T) = 1 - \\sum_j p_j^2'],
       ['Gini de la división', 'gini_{split} = \\tfrac{N_1}{N} gini(T_1) + \\tfrac{N_2}{N} gini(T_2)'],
     ],
-    infografia: 'CurvaEntropia',
     bloques: [
       { clave: 'Se elige el **menor** gini_split · Breiman, Friedman, Olshen y Stone, 1984' },
       { chips: ['divisiones siempre binarias', 'un atributo categórico con k valores → 2^(k−1) − 1 particiones'] },

@@ -117,6 +117,16 @@ export const VISUAL1 = {
     entrada: 'mixta', caja: 'blanca', devuelve: 'datos',
     fuertes: ['Ningún grupo se queda fuera', 'Mejor con grupos homogéneos'],
     debiles: ['Definir bien los estratos'],
+    bloques: [
+      {
+        ti: '¿Cómo se eligen los estratos?',
+        vs: [
+          { t: 'Los define un atributo conocido', c: 'si', i: '✓', items: ['un estrato por valor: la **clase**, la zona, el tramo de edad…', 'cada elemento cae en un solo estrato (no se solapan)', 'lo que se sortea son los **elementos dentro** de cada estrato'] },
+          { t: 'Sortear los estratos no sirve', c: 'no', i: '✗', items: ['grupos hechos al azar ya se parecen a toda la población', 'muestrear dentro equivale a un aleatorio simple', 'sortear **grupos enteros** es otra técnica: muestreo por conglomerados'] },
+        ],
+      },
+      { clave: 'Reparto de la muestra: **proporcional** (el mismo % de cada estrato, conserva las proporciones) o **igual** (la misma cuota para todos, evita que un estrato pequeño desaparezca).' },
+    ],
   },
 
   'seleccion-prototipos': {

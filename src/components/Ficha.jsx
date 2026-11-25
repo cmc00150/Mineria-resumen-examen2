@@ -35,7 +35,7 @@ function TarjetaVisual({ n }) {
           <strong>{NOMBRE_PICTO[v.devuelve]}</strong>
         </div>
       </div>
-      <div className="balanza">
+      {((v.fuertes || []).length > 0 || (v.debiles || []).length > 0) && <div className="balanza">
         <div className="platillo pro">
           <span className="tv-etq">A favor</span>
           {(v.fuertes || []).map((c, i) => (
@@ -48,7 +48,7 @@ function TarjetaVisual({ n }) {
             <span key={i} className="ficha-chip contra" title={f.debiles?.[i] || c}>{c}</span>
           ))}
         </div>
-      </div>
+      </div>}
       {v.parametros && (
         <div className="tv-pie">
           {v.parametros.map((p, i) => <span key={i} className="ficha-chip param"><Texto t={p} /></span>)}

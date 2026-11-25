@@ -216,53 +216,112 @@ export function Incremental() {
 }
 
 // ═════════ Muestreo estratificado ═════════
-const POB = [...Array(72).fill(0), ...Array(36).fill(1), ...Array(12).fill(2)];
+const NOM_CL = ['A', 'B', 'C'];
+const NOM_ZO = ['Norte', 'Sur', 'Este'];
 const COLE = [COLORES.a, COLORES.d, COLORES.b];
-const NOM_E = ['A', 'B', 'C'];
+const POB = (() => {
+  const r = semilla(8);
+  const clases = [...Array(72).fill(0), ...Array(36).fill(1), ...Array(12).fill(2)];
+  const zonas = barajar([...Array(50).fill(0), ...Array(40).fill(1), ...Array(30).fill(2)], r);
+  const az = barajar(clases.map((_, i) => i), r);
+  const rango = new Map(az.map((i, k) => [i, k % 3]));
+  return barajar(clases.map((c, i) => ({ i, clase: c, zona: zonas[i], azar: rango.get(i) })), r);
+})();
+const CRITERIOS_EST = {
+  clase: { nombre: 'la clase', clave: 'clase', vals: NOM_CL, etq: (v) => `Clase ${NOM_CL[v]}` },
+  zona: { nombre: 'la zona', clave: 'zona', vals: NOM_ZO, etq: (v) => NOM_ZO[v] },
+  azar: { nombre: 'un sorteo', clave: 'azar', vals: ['1', '2', '3'], etq: (v) => `Grupo ${v + 1}` },
+};
 export function Estratificado() {
+  const [crit, setCrit] = useState('clase');
+  const [reparto, setReparto] = useState('prop');
   const [semAl, setSemAl] = useState(3);
-  const orden = useMemo(() => barajar(POB.map((g, i) => ({ g, i })), semilla(8)), []);
+  const C = CRITERIOS_EST[crit];
+  const estratos = useMemo(() => [0, 1, 2].map((v) => POB.filter((o) => o[C.clave] === v)), [C]);
+  const cuota = useMemo(() => estratos.map((E) => (reparto === 'prop' ? Math.round(E.length * 0.2) : 8)), [estratos, reparto]);
   const frames = useMemo(() => {
     const r = semilla(21);
-    const fr = [{ e: '0', ordenado: false, sel: new Set(), msg: 'Población de 120 elementos de tres grupos: A 60 %, B 30 %, C 10 %. Queremos una muestra del 20 % (24).' }];
-    fr.push({ e: '1', ordenado: true, sel: new Set(), msg: 'Se divide en estratos que no se solapan: uno por grupo.' });
+    const fr = [{ e: '0', dividido: false, sel: new Set(), msg: 'Población de 120 elementos con dos atributos conocidos: clase (A 60 %, B 30 %, C 10 %) y zona. Queremos una muestra de unos 24 (20 %).' }];
+    const msgDiv = {
+      clase: 'Los estratos NO se sortean: los define un atributo conocido. Con «clase» sale un estrato por valor (A, B, C) y cada elemento cae en uno solo, así que no se solapan.',
+      zona: 'Los estratos los define el atributo «zona»: Norte, Sur y Este. Mira que cada caja mezcla clases: estratificar por zona no garantiza el 60 / 30 / 10 de la clase.',
+      azar: 'Estratos al azar: se reparten los 120 en tres grupos de 40 echando a suertes. Cada grupo ya se parece a toda la población, así que muestrear dentro no aporta nada: equivale a un aleatorio simple.',
+    };
+    fr.push({ e: '1', dividido: true, sel: new Set(), msg: msgDiv[crit] });
     const sel = new Set();
     [0, 1, 2].forEach((g) => {
-      const miembros = orden.filter((o) => o.g === g);
-      const k = Math.round(miembros.length * 0.2);
-      barajar(miembros, r).slice(0, k).forEach((o) => sel.add(o.i));
-      fr.push({ e: '2.0', ordenado: true, sel: new Set(sel), actual: g, msg: `Estrato ${NOM_E[g]} (${miembros.length}): se eligen ${k}, el 20 % de su tamaño.` });
+      const E = estratos[g];
+      barajar(E, r).slice(0, cuota[g]).forEach((o) => sel.add(o.i));
+      const regla = reparto === 'prop' ? `el 20 % de ${E.length} = ${cuota[g]}` : `cuota fija = ${cuota[g]}`;
+      fr.push({ e: '2.0', dividido: true, sel: new Set(sel), actual: g, msg: `${C.etq(g)} (${E.length} elementos): se eligen ${regla}, al azar dentro del estrato.` });
     });
-    fr.push({ e: '3', ordenado: true, sel: new Set(sel), fin: true, msg: 'La muestra final es la unión: conserva exactamente las proporciones 60 / 30 / 10.' });
+    const porClase = [0, 1, 2].map((g) => POB.filter((o) => sel.has(o.i) && o.clase === g).length);
+    fr.push({ e: '3', dividido: true, sel: new Set(sel), fin: true, msg: `La muestra final es la unión: ${sel.size} elementos, con clases A ${porClase[0]}, B ${porClase[1]}, C ${porClase[2]}. ${crit === 'clase' && reparto === 'prop' ? 'Mantiene exactamente el 60 / 30 / 10.' : crit === 'clase' ? 'Con cuota igual todas las clases pesan lo mismo: sirve para que C no desaparezca, pero ya no refleja la población.' : 'Las clases quedan como el azar quiera.'}` });
     return fr;
-  }, [orden]);
-  const aleat = useMemo(() => new Set(barajar(POB.map((_, i) => i), semilla(semAl)).slice(0, 24)), [semAl]);
-  const p = usePasos(frames, { intervalo: 1200 });
+  }, [estratos, cuota, crit, reparto, C]);
+  const total = frames[frames.length - 1].sel.size;
+  const aleat = useMemo(() => new Set(barajar(POB.map((o) => o.i), semilla(semAl)).slice(0, total)), [semAl, total]);
+  const p = usePasos(frames, { intervalo: 1300 });
   const f = p.frame;
-  const lista = f.ordenado ? [...orden].sort((a, b) => a.g - b.g) : orden;
-  const prop = (S) => [0, 1, 2].map((g) => [...S].filter((i) => POB[i] === g).length);
-  const pe = prop(f.sel), pa = prop(aleat);
+  const cuentaClase = (S) => [0, 1, 2].map((g) => POB.filter((o) => S.has(o.i) && o.clase === g).length);
+  const pe = cuentaClase(f.sel), pa = cuentaClase(aleat);
+  const cajas = f.dividido ? estratos.map((E, g) => ({ g, E, titulo: C.etq(g) })) : [{ g: -1, E: POB, titulo: 'Población' }];
   return (
-    <Marco titulo="Muestreo estratificado frente a aleatorio">
+    <Marco
+      titulo="Muestreo estratificado: de dónde salen los estratos y cómo se reparte la muestra"
+      controles={
+        <>
+          <label className="fila-control" style={{ margin: 0 }}>estratificar por
+            <select value={crit} onChange={(e) => setCrit(e.target.value)}>
+              <option value="clase">clase (conocida)</option>
+              <option value="zona">zona (conocida)</option>
+              <option value="azar">sorteo (estratos al azar)</option>
+            </select>
+          </label>
+          <label className="fila-control" style={{ margin: 0 }}>reparto
+            <select value={reparto} onChange={(e) => setReparto(e.target.value)}>
+              <option value="prop">proporcional (20 % de cada uno)</option>
+              <option value="igual">igual (8 de cada uno)</option>
+            </select>
+          </label>
+        </>
+      }
+    >
       <Controles p={p} />
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(20, 1fr)', gap: 3, maxWidth: 520 }}>
-        {lista.map((o) => {
-          const el = f.sel.has(o.i);
-          return <span key={o.i} style={{ aspectRatio: '1', borderRadius: 3, background: el ? COLE[o.g] : '#fbfcfa', border: `2px solid ${COLE[o.g]}`, opacity: f.actual != null && f.actual !== o.g && !f.fin ? 0.3 : 1, transition: 'all .3s' }} />;
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {cajas.map(({ g, E, titulo }) => {
+          const activa = f.actual == null || f.actual === g || f.fin || g < 0;
+          return (
+            <div key={g} style={{ flex: `1 1 ${Math.max(96, E.length * 2.2)}px`, border: '2px solid #1f2b25', borderRadius: 8, padding: 6, background: '#fbfcfa', opacity: activa ? 1 : 0.35, transition: 'opacity .3s' }}>
+              <div style={{ fontFamily: 'var(--f-titulo)', fontSize: 12, marginBottom: 5 }}>
+                <b>{titulo}</b> · {E.length}{g >= 0 && <span> · cuota <b>{cuota[g]}</b></span>}
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, 14px)', gap: 3 }}>
+                {E.map((o) => {
+                  const el = f.sel.has(o.i);
+                  return <span key={o.i} title={`clase ${NOM_CL[o.clase]} · ${NOM_ZO[o.zona]}`} style={{ width: 14, height: 14, borderRadius: 3, background: el ? COLE[o.clase] : '#fbfcfa', border: `2px solid ${COLE[o.clase]}`, transition: 'all .3s' }} />;
+                })}
+              </div>
+            </div>
+          );
         })}
+      </div>
+      <div className="estadisticas" style={{ marginTop: 6 }}>
+        {NOM_CL.map((n, g) => <span key={n} style={{ color: COLE[g] }}>■ clase {n}</span>)}
+        <span>relleno = elegido · hueco = no elegido</span>
       </div>
       <Mensaje>{f.msg}</Mensaje>
       <div className="vb-barras" style={{ marginTop: 10 }}>
-        {[['Población', [72, 36, 12], 120], ['Estratificada', pe, Math.max(1, pe[0] + pe[1] + pe[2])], ['Aleatoria', pa, 24]].map(([n, v, tot]) => (
+        {[['Población', [72, 36, 12], 120], ['Estratificada', pe, Math.max(1, pe[0] + pe[1] + pe[2])], ['Aleatoria simple', pa, Math.max(1, total)]].map(([n, v, tot]) => (
           <div className="vb-fila" key={n}>
             <span className="vb-e">{n}</span>
             <div style={{ display: 'flex', height: 18, borderRadius: 4, overflow: 'hidden', border: '1px solid #c3ccc4' }}>
-              {v.map((x, g) => <span key={g} style={{ width: `${(x / tot) * 100}%`, background: COLE[g], color: '#fff', fontSize: 11, fontFamily: 'var(--f-titulo)', textAlign: 'center', lineHeight: '18px' }}>{x ? `${NOM_E[g]} ${Math.round((x / tot) * 100)}%` : ''}</span>)}
+              {v.map((x, g) => <span key={g} style={{ width: `${(x / tot) * 100}%`, background: COLE[g], color: '#fff', fontSize: 11, fontFamily: 'var(--f-titulo)', textAlign: 'center', lineHeight: '18px' }}>{x ? `${NOM_CL[g]} ${Math.round((x / tot) * 100)}%` : ''}</span>)}
             </div>
           </div>
         ))}
       </div>
-      <div className="estadisticas"><button className="boton" onClick={() => setSemAl((x) => x + 1)} type="button">Otra muestra aleatoria</button><span>la aleatoria puede alejarse de 60/30/10; la estratificada no</span></div>
+      <div className="estadisticas"><button className="boton" onClick={() => setSemAl((x) => x + 1)} type="button">Otra muestra aleatoria</button><span>las barras muestran la proporción de clases en cada muestra</span></div>
     </Marco>
   );
 }

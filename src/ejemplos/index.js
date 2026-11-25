@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+import * as c45 from './c45.jsx';
 import * as p1 from './parte1.jsx';
 import * as p2 from './parte2.jsx';
 import * as p3 from './parte3.jsx';
@@ -11,6 +12,7 @@ import { PasoChiMerge, PasoMDLP } from './discretizacion.jsx';
 import { PasoLista, PasoReglasArbol } from './reglas.jsx';
 import { ComiteGeneral, ComiteBagging, ComiteBoosting } from './ensembles.jsx';
 import { PasoZeroR, PasoOneR, OneRDisc } from './basicos.jsx';
+import { PasoCriterio, Impureza } from './criterios.jsx';
 import { ArbolTDIDT, ArbolID3, ArbolC45, ArbolCART } from './arboles.jsx';
 
 // Los ejemplos 3D se cargan solo cuando se abren (three.js pesa).
@@ -53,7 +55,8 @@ export const DEMOS = {
   ParticionEspacio: p2.ParticionEspacio,
   ArbolCredito: p2.ArbolCredito,
   Ganancia: p2.Ganancia,
-  UmbralC45: p2.UmbralC45,
+  UmbralC45: c45.UmbralC45,
+  HiloC45: c45.HiloC45,
   Prism: p2.Prism,
   Solapamiento: p2.Solapamiento,
   Codificacion: p2.Codificacion,
@@ -75,6 +78,8 @@ export const DEMOS = {
   PasoZeroR,
   PasoOneR,
   OneRDisc,
+  PasoCriterio,
+  Impureza,
   ArbolTDIDT,
   ArbolID3,
   ArbolC45,
@@ -99,5 +104,5 @@ export const DEMOS = {
 export const SINCRONIZADOS = new Set([
   'Urna', 'Clusters', 'Incremental', 'Estratificado', 'Estratificacion', 'SiArbol',
   'PasoCNN', 'PasoENN', 'PasoMultiedit', 'PasoIB3', 'PasoDROP3', 'PasoRMHC', 'PasoCHC', 'PasoSSMA',
-  'Knn', 'PasoChiMerge', 'PasoMDLP', 'PasoLista', 'PasoReglasArbol', 'NaiveBayes', 'Perceptron', 'Prism', 'RegresionLineal', 'Sdr', 'ComiteGeneral', 'ComiteBagging', 'ComiteBoosting', 'PasoZeroR', 'PasoOneR', 'ArbolTDIDT', 'ArbolID3', 'ArbolC45', 'ArbolCART',
+  'Knn', 'PasoChiMerge', 'PasoMDLP', 'PasoLista', 'PasoReglasArbol', 'NaiveBayes', 'Perceptron', 'Prism', 'RegresionLineal', 'Sdr', 'ComiteGeneral', 'ComiteBagging', 'ComiteBoosting', 'PasoZeroR', 'PasoOneR', 'PasoCriterio', 'ArbolTDIDT', 'ArbolID3', 'ArbolC45', 'ArbolCART',
 ]);

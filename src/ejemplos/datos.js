@@ -100,3 +100,7 @@ export const DATASETS = {
   credito: { nombre: 'Crédito (árbol)', filas: CREDITO, clase: 'credito', clases: ['si', 'no'], attrs: ['ingresos', 'propietario', 'gastos'], base: 2 },
   alturas: { nombre: 'Alturas (log₁₀)', filas: ALTURAS, clase: 'clase', clases: ['short', 'medium', 'tall'], attrs: ['genero', 'altura'], base: 10 },
 };
+
+// Horas jugadas por día (mismo orden que TENIS / TENIS_NUM). No está en las diapositivas: se añade para
+// poder enseñar la regresión con árboles (SDR, CART) sobre datos que ya se conocen.
+export const HORAS = [25, 30, 46, 45, 52, 23, 43, 35, 38, 46, 48, 52, 44, 30];

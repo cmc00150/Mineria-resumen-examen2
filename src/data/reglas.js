@@ -346,7 +346,7 @@ export const reglas = [
         b: ['Cuándo parar y cómo recortar el árbol no depende del criterio: es la [[poda]] (pre-poda al construir, post-poda al terminar).'],
       },
     ],
-    ejemplo: 'Ganancia',
+    ejemplo: 'PasoCriterio',
     rel: [
       ['entropia', 'mide el desorden'],
       ['poda', 'lo que viene después'],

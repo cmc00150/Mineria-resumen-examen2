@@ -428,3 +428,27 @@ table.t.resumen-t th button { all: unset; cursor: pointer; }
 .vb-aviso > span:first-child { font-weight: 800; }
 .vb-aviso small { display: block; font-family: var(--f-texto); font-size: 14px; margin-top: 3px; color: #6b3a10; }
 @media (max-width: 640px) { .vb-fila { grid-template-columns: 1fr; } .vb-e { text-align: left; } .vb-tarjetas[style] { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } }
+
+/* ───────────── Ejemplo + esquema sincronizados ───────────── */
+.con-esquema { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 18px; align-items: start; }
+.con-esquema > aside { position: sticky; top: calc(var(--barra) + 12px); max-height: calc(100vh - var(--barra) - 24px); overflow: auto; }
+@media (max-width: 1100px) { .con-esquema { grid-template-columns: minmax(0, 1fr); } .con-esquema > aside { position: static; max-height: none; order: -1; } }
+.esquema.compacto .panel-titulo h2 { font-size: 16px; }
+.esquema.compacto .paso-e { margin-bottom: 6px; }
+.esquema.compacto .paso-e .caja { font-size: 13.5px; padding: 6px 9px; gap: 8px; }
+.esquema.compacto .paso-e .caja .detalle { font-size: 12.5px; }
+.esquema.compacto .paso-e.k-si .ramas { font-size: 12.5px; }
+.paso-e .caja { transition: box-shadow 0.2s, border-color 0.2s; }
+.controles-paso { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 4px 0 10px; }
+.mensaje-paso { min-height: 2.8em; margin: 8px 0 0; padding: 8px 12px; border-left: 4px solid var(--cat); background: var(--cat-suave); border-radius: 0 6px 6px 0; font-family: var(--f-titulo); font-size: 15px; line-height: 1.4; }
+.estadisticas { display: flex; flex-wrap: wrap; gap: 8px 18px; font-family: var(--f-titulo); font-size: 14px; color: var(--tinta-2); margin-top: 8px; }
+.estadisticas b { color: var(--tinta); }
+details.weka { margin-top: 30px; border-top: 1px solid var(--linea); padding-top: 12px; }
+details.weka summary, details.detalle-texto summary { cursor: pointer; font-family: var(--f-titulo); font-weight: 600; color: var(--tinta-2); }
+.leyenda-puntos { display: flex; flex-wrap: wrap; gap: 6px 14px; font-family: var(--f-titulo); font-size: 13px; color: var(--tinta-2); margin-top: 6px; }
+.leyenda-puntos svg { vertical-align: -3px; margin-right: 4px; }
+.vb-paneles { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.vb-panel { margin: 0; padding: 10px 10px 8px; border: 1px solid var(--linea); border-radius: 6px; background: var(--blanco); }
+.vb-panel figcaption { font-family: var(--f-titulo); font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+.vb-panel svg { display: block; width: 100%; height: auto; }
+.vb-panel small { display: block; font-family: var(--f-titulo); font-size: 12.5px; color: var(--tinta-3); margin-top: 4px; }

@@ -218,6 +218,7 @@ export const preparacion = [
       debiles: ['Necesita conocer o calcular los grupos'],
       parametros: ['Número de ejemplos por grupo (proporcional a su tamaño)'],
     },
+    ejemplo: 'Clusters',
     esquema: [
       { k: 'in', t: 'Datos sin refinar' },
       { k: 'paso', t: 'Identificar los grupos' },
@@ -244,6 +245,7 @@ export const preparacion = [
       debiles: ['Hay que entrenar y evaluar varias veces'],
       parametros: ['Secuencia de tamaños (10, 20, 33, 50, 67, 100 %)', 'Criterio de "sin progreso"'],
     },
+    ejemplo: 'Incremental',
     esquema: [
       { k: 'in', t: 'Secuencia 10 % → 20 % → 33 % → 50 % → 67 % → 100 %' },
       {
@@ -275,6 +277,7 @@ export const preparacion = [
       debiles: ['Hay que definir bien los estratos'],
       parametros: ['Criterio para formar los estratos', 'Tamaño de muestra por estrato'],
     },
+    ejemplo: 'Estratificado',
     esquema: [
       { k: 'in', t: 'Datos con grupos homogéneos' },
       { k: 'paso', t: 'Dividir en estratos no superpuestos' },
@@ -399,7 +402,7 @@ export const preparacion = [
         b: [{ tabla: { cab: ['Dirección', 'Tipo', 'Evaluación'], filas: [['Incremental', 'Condensación', 'Filtro']] } }],
       },
     ],
-    ejemplo: 'CnnEnn',
+    ejemplo: 'PasoCNN',
     rel: [
       ['enn', 'el clásico opuesto: edición'],
       ['knn', 'usa 1-NN para decidir'],
@@ -446,7 +449,7 @@ export const preparacion = [
         ],
       },
     ],
-    ejemplo: 'CnnEnn',
+    ejemplo: 'PasoENN',
     rel: [
       ['cnn', 'el clásico opuesto: condensación'],
       ['multiedit', 'otra variante de edición'],
@@ -471,9 +474,18 @@ export const preparacion = [
       debiles: ['Reduce poco el tamaño comparado con condensación o híbridos'],
       parametros: ['Número de particiones'],
     },
+    ejemplo: 'PasoMultiedit',
     esquema: [
-      { k: 'in', t: 'Entrenamiento' },
-      { k: 'bucle', t: 'Repetir hasta que no haya cambios', pasos: [{ k: 'paso', t: 'Editar con la regla NN (como ENN) en varias particiones' }] },
+      { k: 'in', t: 'Entrenamiento T' },
+      {
+        k: 'bucle',
+        t: 'Repetir hasta que no haya cambios',
+        pasos: [
+          { k: 'paso', t: 'Repartir T al azar en b bloques' },
+          { k: 'paso', t: 'Clasificar cada bloque Bᵢ con 1-NN usando solo el bloque siguiente' },
+          { k: 'si', t: '¿Hubo mal clasificadas?', si: 'quitarlas y repetir', no: 'parar' },
+        ],
+      },
       { k: 'out', t: 'Conjunto editado' },
     ],
     rel: [['enn', 'edición clásica']],
@@ -497,17 +509,20 @@ export const preparacion = [
       debiles: ['Depende del orden de presentación (incremental)'],
       parametros: ['Umbrales de aceptación/rechazo'],
     },
+    ejemplo: 'PasoIB3',
     esquema: [
-      { k: 'in', t: 'S vacío' },
+      { k: 'in', t: 'S vacío; cada instancia de S guarda aciertos / intentos' },
       {
         k: 'bucle',
         t: 'Para cada instancia x',
         pasos: [
-          { k: 'si', t: '¿El vecino aceptable de S la clasifica mal?', si: 'añadir x', no: 'descartar' },
-          { k: 'paso', t: 'Actualizar registro de aciertos y quitar las de mal historial' },
+          { k: 'paso', t: 'Buscar en S el vecino aceptable más cercano (si no hay, uno al azar)' },
+          { k: 'si', t: '¿Es de otra clase?', si: 'añadir x a S', no: 'no añadir' },
+          { k: 'paso', t: 'Actualizar el historial de las de S igual de cerca o más' },
+          { k: 'paso', t: 'Quitar de S las de mal historial' },
         ],
       },
-      { k: 'out', t: 'Prototipos aceptables' },
+      { k: 'out', t: 'Solo las aceptables' },
     ],
     rel: [['cnn', 'IB2 ≈ CNN']],
   },
@@ -529,11 +544,12 @@ export const preparacion = [
       debiles: ['Coste alto ($O(n^2)$ o más)', 'Con KDD Cup’99 estratificado, C4.5 sobre DROP1/2/3 pierde mucho acierto en test (35–77 %)'],
       parametros: ['k vecinos'],
     },
+    ejemplo: 'PasoDROP3',
     esquema: [
-      { k: 'in', t: 'Entrenamiento T' },
-      { k: 'paso', t: 'Quitar ruido (paso de edición)' },
-      { k: 'paso', t: 'Ordenar instancias (las lejanas a la frontera primero)' },
-      { k: 'bucle', t: 'Para cada instancia en ese orden', pasos: [{ k: 'si', t: '¿Sus asociados se clasifican igual de bien sin ella?', si: 'eliminarla', no: 'conservarla' }] },
+      { k: 'in', t: 'Entrenamiento T, k vecinos' },
+      { k: 'paso', t: 'Quitar ruido con ENN' },
+      { k: 'paso', t: 'Ordenar por distancia al enemigo más cercano (lejanas primero)' },
+      { k: 'bucle', t: 'Para cada instancia x en ese orden', pasos: [{ k: 'si', t: '¿Sus asociados se clasifican igual de bien sin x?', si: 'eliminarla', no: 'conservarla' }] },
       { k: 'out', t: 'Conjunto reducido' },
     ],
   },
@@ -555,6 +571,7 @@ export const preparacion = [
       debiles: ['Búsqueda local: puede quedarse en óptimos locales'],
       parametros: ['Tamaño final', 'Número de iteraciones'],
     },
+    ejemplo: 'PasoRMHC',
     esquema: [
       { k: 'in', t: 'Subconjunto aleatorio de tamaño m' },
       { k: 'bucle', t: 'Repetir', pasos: [{ k: 'paso', t: 'Cambiar una instancia al azar' }, { k: 'si', t: '¿Mejora el acierto?', si: 'aceptar', no: 'deshacer' }] },
@@ -584,6 +601,7 @@ export const preparacion = [
       debiles: ['El más lento: 1960 s con 100 estratos (frente a 0–8 s de CNN/IB)'],
       parametros: ['Tamaño de población', 'Número de evaluaciones', 'Peso entre reducción y acierto'],
     },
+    ejemplo: 'PasoCHC',
     esquema: [
       { k: 'in', t: 'Población de cromosomas binarios (1 bit por instancia)' },
       {
@@ -619,6 +637,7 @@ export const preparacion = [
       debiles: ['Coste computacional elevado'],
       parametros: ['Parámetros evolutivos y de búsqueda local'],
     },
+    ejemplo: 'PasoSSMA',
     esquema: [
       { k: 'in', t: 'Población de subconjuntos' },
       { k: 'bucle', t: 'Generaciones', pasos: [{ k: 'paso', t: 'Cruce/mutación' }, { k: 'paso', t: 'Búsqueda local sobre el hijo' }] },
@@ -628,10 +647,118 @@ export const preparacion = [
   },
 
   {
+    id: 'no-balanceados',
+    nombre: 'Conjuntos no balanceados',
+    padre: 'preparacion',
+    tipo: 'familia',
+    salida: 'prep',
+    tema: 'T3 · 3.5',
+    parte: 1,
+    resumen: 'Cuando una clase es mucho más frecuente que otra, el acierto engaña: hay que reequilibrar.',
+    secciones: [
+      {
+        t: 'El problema',
+        b: [
+          'Algunos problemas tienen una presencia de clases muy desigual:',
+          {
+            tabla: {
+              cab: ['Dominio', 'Mayoritaria', 'Minoritaria'],
+              filas: [
+                ['Diagnosis médica', '90 % sin enfermedad', '10 % enfermedad'],
+                ['e-comercio', '99 % no compra', '1 % compra'],
+                ['Seguridad', '> 99,99 % conexiones normales', 'ataques'],
+              ],
+            },
+          },
+          'La situación es similar con múltiples clases. La mayoría de clasificadores obtienen un **97 % de acierto pero no son útiles**: basta con predecir siempre la mayoritaria (como haría [[zeror]]).',
+        ],
+      },
+      {
+        t: 'Cómo se procesan',
+        b: [
+          {
+            vs: [
+              { t: 'Reducir la clase mayoritaria', items: ['Técnicas de reducción de datos (selección de instancias) aplicadas a la clase mayoritaria.'] },
+              { t: 'Sobremuestrear la minoritaria', items: ['Aumentar el tamaño de las clases minoritarias.', 'Riesgo: **sobreajuste** si se copian datos con ruido.', 'Solución: [[smote]].'] },
+            ],
+          },
+        ],
+      },
+    ],
+    rel: [
+      ['zeror', 'el clasificador trivial que ya acierta un 97 %'],
+      ['seleccion-instancias', 'reducir la clase mayoritaria es seleccionar instancias'],
+    ],
+  },
+  {
+    id: 'smote',
+    nombre: 'SMOTE',
+    padre: 'no-balanceados',
+    tipo: 'algoritmo',
+    salida: 'prep',
+    tema: 'T3 · 3.5',
+    parte: 1,
+    resumen: 'Synthetic Minority Oversampling Technique: crea ejemplos sintéticos de la clase minoritaria sobre los segmentos que la unen con sus vecinos.',
+    ficha: {
+      entrada: 'Conjunto no balanceado',
+      devuelve: 'El conjunto original + ejemplos sintéticos de la clase minoritaria',
+      funcionamiento:
+        'Para cada ejemplo de la clase minoritaria se buscan sus k vecinos más cercanos de la misma clase y se introducen ejemplos sintéticos en el segmento que lo une con cualquiera/todos esos vecinos. Crea instancias nuevas usando la similitud en el espacio de características.',
+      fuertes: ['Evita el sobreajuste del sobremuestreo por copia', 'Rellena la región de la clase minoritaria en lugar de repetir puntos'],
+      debiles: ['Si la minoritaria tiene ruido, se generan puntos sintéticos ruidosos', 'Puede invadir la región de la otra clase'],
+      parametros: ['k vecinos', 'Cantidad de sobremuestreo (%)'],
+      weka: 'Filtro supervised › instance › SMOTE (paquete adicional)',
+    },
+    esquema: [
+      { k: 'in', t: 'Ejemplos de la clase minoritaria' },
+      {
+        k: 'bucle',
+        t: 'Para cada ejemplo minoritario x',
+        pasos: [
+          { k: 'paso', t: 'Buscar sus k vecinos minoritarios' },
+          { k: 'paso', t: 'Elegir un vecino v' },
+          { k: 'paso', t: 'Nuevo punto = x + λ·(v − x), λ ∈ [0,1]' },
+        ],
+      },
+      { k: 'out', t: 'Datos más balanceados' },
+    ],
+    secciones: [{ t: 'Fórmula', b: [{ f: 'x_{\\text{nuevo}} = x_i + \\lambda\\,(x_{vecino} - x_i),\\quad \\lambda \\sim U(0,1)' }] }],
+    ejemplo: 'Smote',
+    rel: [
+      ['knn', 'busca vecinos más cercanos'],
+      ['sobreajuste', 'lo que intenta evitar frente al sobremuestreo por copia'],
+    ],
+  },
+
+  {
+    id: 'si-aplicaciones',
+    nombre: 'Usos de la selección de instancias',
+    corto: 'Usos de la SI',
+    padre: 'preparacion',
+    tipo: 'familia',
+    salida: 'prep',
+    tema: 'T3 · 3.3–3.4',
+    parte: 1,
+    resumen: 'Estrategias que usan un algoritmo de selección de instancias dentro de algo mayor: escalar a bases de datos enormes y obtener árboles y reglas más pequeños.',
+    secciones: [
+      {
+        t: 'Qué contiene',
+        b: [
+          'No son algoritmos de selección nuevos: **usan** uno ya visto ([[cnn]], [[ib3]], [[chc]]…) como pieza de una estrategia mayor.',
+          { ul: ['[[si-grandes-bd]]: estratificar para que la selección sea viable con medio millón de instancias.', '[[si-modelos]]: entrenar C4.5 con lo seleccionado para obtener árboles y reglas más pequeños.'] },
+        ],
+      },
+    ],
+    rel: [
+      ['seleccion-instancias', 'usa sus algoritmos'],
+      ['seleccion-prototipos', 'los selectores que se aplican'],
+    ],
+  },
+  {
     id: 'si-grandes-bd',
     nombre: 'Selección de instancias en grandes bases de datos',
     corto: 'SI con estratificación',
-    padre: 'seleccion-instancias',
+    padre: 'si-aplicaciones',
     tipo: 'algoritmo',
     salida: 'prep',
     tema: 'T3 · 3.3',
@@ -646,6 +773,7 @@ export const preparacion = [
       debiles: ['Cada estrato solo "ve" una parte de los datos'],
       parametros: ['Número de estratos (100, 200, 300 en el ejemplo)'],
     },
+    ejemplo: 'Estratificacion',
     esquema: [
       { k: 'in', t: 'Conjunto de datos grande' },
       { k: 'paso', t: 'Dividir en t estratos T1 … Tt' },
@@ -690,7 +818,7 @@ export const preparacion = [
     id: 'si-modelos',
     nombre: 'Selección de instancias + árboles y reglas',
     corto: 'SI + árboles y reglas',
-    padre: 'seleccion-instancias',
+    padre: 'si-aplicaciones',
     tipo: 'algoritmo',
     salida: 'prep',
     tema: 'T3 · 3.4',
@@ -705,6 +833,7 @@ export const preparacion = [
       debiles: ['Algunos selectores destrozan el acierto (DROP1: 35 % en test)'],
       parametros: ['Selector de instancias', 'Número de estratos'],
     },
+    ejemplo: 'SiArbol',
     esquema: [
       { k: 'in', t: 'Datos grandes' },
       { k: 'paso', t: 'SI estratificada → TSS' },
@@ -758,86 +887,6 @@ export const preparacion = [
     ],
   },
 
-  {
-    id: 'no-balanceados',
-    nombre: 'Conjuntos no balanceados',
-    padre: 'seleccion-instancias',
-    tipo: 'familia',
-    salida: 'prep',
-    tema: 'T3 · 3.5',
-    parte: 1,
-    resumen: 'Cuando una clase es mucho más frecuente que otra, el acierto engaña: hay que reequilibrar.',
-    secciones: [
-      {
-        t: 'El problema',
-        b: [
-          'Algunos problemas tienen una presencia de clases muy desigual:',
-          {
-            tabla: {
-              cab: ['Dominio', 'Mayoritaria', 'Minoritaria'],
-              filas: [
-                ['Diagnosis médica', '90 % sin enfermedad', '10 % enfermedad'],
-                ['e-comercio', '99 % no compra', '1 % compra'],
-                ['Seguridad', '> 99,99 % conexiones normales', 'ataques'],
-              ],
-            },
-          },
-          'La situación es similar con múltiples clases. La mayoría de clasificadores obtienen un **97 % de acierto pero no son útiles**: basta con predecir siempre la mayoritaria (como haría [[zeror]]).',
-        ],
-      },
-      {
-        t: 'Cómo se procesan',
-        b: [
-          {
-            vs: [
-              { t: 'Reducir la clase mayoritaria', items: ['Técnicas de reducción de datos (selección de instancias) aplicadas a la clase mayoritaria.'] },
-              { t: 'Sobremuestrear la minoritaria', items: ['Aumentar el tamaño de las clases minoritarias.', 'Riesgo: **sobreajuste** si se copian datos con ruido.', 'Solución: [[smote]].'] },
-            ],
-          },
-        ],
-      },
-    ],
-    rel: [['zeror', 'el clasificador trivial que ya acierta un 97 %']],
-  },
-  {
-    id: 'smote',
-    nombre: 'SMOTE',
-    padre: 'no-balanceados',
-    tipo: 'algoritmo',
-    salida: 'prep',
-    tema: 'T3 · 3.5',
-    parte: 1,
-    resumen: 'Synthetic Minority Oversampling Technique: crea ejemplos sintéticos de la clase minoritaria sobre los segmentos que la unen con sus vecinos.',
-    ficha: {
-      entrada: 'Conjunto no balanceado',
-      devuelve: 'El conjunto original + ejemplos sintéticos de la clase minoritaria',
-      funcionamiento:
-        'Para cada ejemplo de la clase minoritaria se buscan sus k vecinos más cercanos de la misma clase y se introducen ejemplos sintéticos en el segmento que lo une con cualquiera/todos esos vecinos. Crea instancias nuevas usando la similitud en el espacio de características.',
-      fuertes: ['Evita el sobreajuste del sobremuestreo por copia', 'Rellena la región de la clase minoritaria en lugar de repetir puntos'],
-      debiles: ['Si la minoritaria tiene ruido, se generan puntos sintéticos ruidosos', 'Puede invadir la región de la otra clase'],
-      parametros: ['k vecinos', 'Cantidad de sobremuestreo (%)'],
-      weka: 'Filtro supervised › instance › SMOTE (paquete adicional)',
-    },
-    esquema: [
-      { k: 'in', t: 'Ejemplos de la clase minoritaria' },
-      {
-        k: 'bucle',
-        t: 'Para cada ejemplo minoritario x',
-        pasos: [
-          { k: 'paso', t: 'Buscar sus k vecinos minoritarios' },
-          { k: 'paso', t: 'Elegir un vecino v' },
-          { k: 'paso', t: 'Nuevo punto = x + λ·(v − x), λ ∈ [0,1]' },
-        ],
-      },
-      { k: 'out', t: 'Datos más balanceados' },
-    ],
-    secciones: [{ t: 'Fórmula', b: [{ f: 'x_{\\text{nuevo}} = x_i + \\lambda\\,(x_{vecino} - x_i),\\quad \\lambda \\sim U(0,1)' }] }],
-    ejemplo: 'Smote',
-    rel: [
-      ['knn', 'busca vecinos más cercanos'],
-      ['sobreajuste', 'lo que intenta evitar frente al sobremuestreo por copia'],
-    ],
-  },
 
   // ───────────────────────── DISCRETIZACIÓN ─────────────────────────
   {

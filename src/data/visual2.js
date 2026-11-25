@@ -58,8 +58,9 @@ export const VISUAL2 = {
     entrada: 'discreta', caja: 'blanca', devuelve: 'reglas',
     fuertes: ['Simple y competitivo (Holte 1993)', 'Interpretable'],
     debiles: ['Un solo atributo', 'Sesgo: muchos valores'],
-    parametros: ['minBucketSize'],
+    parametros: ['tamaño mínimo de intervalo'],
     weka: 'OneR',
+    wekaBloques: [{ chips: ['minBucketSize = tamaño mínimo de cada intervalo al discretizar'] }],
     bloques: [
       {
         ti: 'Aparece dos veces',

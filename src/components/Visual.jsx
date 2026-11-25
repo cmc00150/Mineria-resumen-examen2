@@ -61,6 +61,68 @@ function Barras({ b }) {
   );
 }
 
+// Columnas verticales agrupadas. panel = { t, grupos: [{ n, v: [] }], series: [{ n, c }], min, max, log, ref: { v, n }, unidad, nota }
+function Panel({ p }) {
+  const ref = useRef(null);
+  const giro = p.grupos.length > 5;
+  const W = 300, H = giro ? 228 : 210, m = { l: 40, r: 8, t: 24, b: giro ? 56 : 40 };
+  const vals = p.grupos.flatMap((g) => g.v.filter((x) => x != null));
+  const min = p.min ?? 0;
+  const max = p.max ?? Math.max(...vals, p.ref?.v ?? 0);
+  const f = (v) => (p.log ? Math.log10(1 + Math.max(v, 0)) / Math.log10(1 + max) : (Math.max(v, min) - min) / (max - min));
+  const y = (v) => H - m.b - f(v) * (H - m.b - m.t);
+  const gw = (W - m.l - m.r) / p.grupos.length;
+  const bw = Math.min(22, (gw - 10) / p.series.length);
+  const ticks = p.log ? [1, 10, 100, 1000, 10000].filter((t) => t <= max) : Array.from({ length: 5 }, (_, i) => min + ((max - min) * i) / 4);
+  useEffect(() => {
+    if (ref.current) anim(ref.current.querySelectorAll('rect.col'), { scaleY: [0, 1], duration: 600, delay: stagger(30), ease: 'outCubic' });
+  }, []);
+  const fmt = (v) => (Math.abs(v) >= 100 ? Math.round(v).toLocaleString('es-ES') : String(Number(v.toFixed(2))).replace('.', ','));
+  return (
+    <figure className="vb-panel">
+      <figcaption><Texto t={p.t} /></figcaption>
+      <svg ref={ref} viewBox={`0 0 ${W} ${H}`} role="img" aria-label={p.t}>
+        {ticks.map((t) => (
+          <g key={t}>
+            <line x1={m.l} x2={W - m.r} y1={y(t)} y2={y(t)} stroke="#e4e9e2" />
+            <text x={m.l - 5} y={y(t) + 4} textAnchor="end" fontSize="10.5" fill="#6f7d75" fontFamily="var(--f-titulo)">{fmt(t)}</text>
+          </g>
+        ))}
+        {p.ref && (
+          <g>
+            <line x1={m.l} x2={W - m.r} y1={y(p.ref.v)} y2={y(p.ref.v)} stroke="#1f2b25" strokeDasharray="5 3" strokeWidth="1.5" />
+            <text x={W - m.r} y={11} textAnchor="end" fontSize="10.5" fill="#1f2b25" fontFamily="var(--f-titulo)" fontWeight="700">- - {p.ref.n} {fmt(p.ref.v)}</text>
+          </g>
+        )}
+        {p.grupos.map((g, gi) => {
+          const x0 = m.l + gi * gw + (gw - bw * p.series.length) / 2;
+          return (
+            <g key={g.n}>
+              {g.v.map((v, si) => v == null ? null : (
+                <g key={si}>
+                  <rect className="col" x={x0 + si * bw + 1} y={y(v)} width={bw - 2} height={H - m.b - y(v)} fill={ACENTO[p.series[si].c] || p.series[si].c} style={{ transformOrigin: `0 ${H - m.b}px`, transformBox: 'view-box' }}>
+                    <title>{`${g.n} · ${p.series[si].n}: ${fmt(v)}${p.unidad || ''}`}</title>
+                  </rect>
+                </g>
+              ))}
+              {p.series.length === 1 && g.v[0] != null && (() => {
+                const cx = m.l + gi * gw + gw / 2, yv = y(g.v[0]), dentro = yv < m.t + 30;
+                return dentro
+                  ? <text x={cx} y={yv + 5} transform={`rotate(-90 ${cx} ${yv + 5})`} textAnchor="end" dominantBaseline="central" fontSize="10" fontWeight="700" fill="#fff" fontFamily="var(--f-titulo)">{fmt(g.v[0])}</text>
+                  : <text x={cx} y={yv - 3} textAnchor="middle" fontSize="9.5" fill="#4a5a51" fontFamily="var(--f-titulo)">{fmt(g.v[0])}</text>;
+              })()}
+              <text x={m.l + gi * gw + gw / 2} y={H - m.b + 15} textAnchor={giro ? 'end' : 'middle'} transform={giro ? `rotate(-40 ${m.l + gi * gw + gw / 2} ${H - m.b + 15})` : undefined} fontSize={giro ? 11 : 12} fontWeight="700" fill="#1f2b25" fontFamily="var(--f-titulo)">{g.n}</text>
+              {g.s && <text x={m.l + gi * gw + gw / 2} y={H - m.b + 29} textAnchor="middle" fontSize="10.5" fill="#6f7d75" fontFamily="var(--f-titulo)">{g.s}</text>}
+            </g>
+          );
+        })}
+        <line x1={m.l} x2={W - m.r} y1={H - m.b} y2={H - m.b} stroke="#4a5a51" />
+      </svg>
+      {p.nota && <small><Texto t={p.nota} /></small>}
+    </figure>
+  );
+}
+
 function Celda({ v }) {
   if (v === '✓') return <span className="vb-si">✓</span>;
   if (v === '✗') return <span className="vb-no">✗</span>;
@@ -92,6 +154,17 @@ function Bloque({ b }) {
       </div>
     );
   if (b.barras) return <Barras b={b.barras} />;
+  if (b.paneles)
+    return (
+      <div>
+        {b.series && (
+          <div className="vb-leyenda">
+            {b.series.map((x) => <span key={x.n}><i style={{ background: ACENTO[x.c] || x.c }} />{x.n}</span>)}
+          </div>
+        )}
+        <div className="vb-paneles">{b.paneles.map((p, k) => <Panel key={k} p={{ series: b.series, ...p }} />)}</div>
+      </div>
+    );
   if (b.linea)
     return (
       <ol className="vb-linea">

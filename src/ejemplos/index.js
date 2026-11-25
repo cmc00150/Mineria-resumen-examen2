@@ -7,6 +7,11 @@ import * as info from './info.jsx';
 import * as mu from './muestreo.jsx';
 import * as pr from './prototipos.jsx';
 import { Knn } from './knn.jsx';
+import { PasoChiMerge, PasoMDLP } from './discretizacion.jsx';
+import { PasoLista, PasoReglasArbol } from './reglas.jsx';
+import { ComiteGeneral, ComiteBagging, ComiteBoosting } from './ensembles.jsx';
+import { PasoZeroR, PasoOneR, OneRDisc } from './basicos.jsx';
+import { ArbolTDIDT, ArbolID3, ArbolC45, ArbolCART } from './arboles.jsx';
 
 // Los ejemplos 3D se cargan solo cuando se abren (three.js pesa).
 const Red3D = lazy(() => import('./tresd.jsx').then((m) => ({ default: m.Red3D })));
@@ -60,6 +65,20 @@ export const DEMOS = {
   Activaciones: p3.Activaciones,
   Perceptron: p3.Perceptron,
   Knn,
+  PasoChiMerge,
+  PasoMDLP,
+  PasoLista,
+  PasoReglasArbol,
+  ComiteGeneral,
+  ComiteBagging,
+  ComiteBoosting,
+  PasoZeroR,
+  PasoOneR,
+  OneRDisc,
+  ArbolTDIDT,
+  ArbolID3,
+  ArbolC45,
+  ArbolCART,
   BaggingBoosting: p3.BaggingBoosting,
   AdaBoost: p3.AdaBoost,
   OvoOva: p3.OvoOva,
@@ -80,5 +99,5 @@ export const DEMOS = {
 export const SINCRONIZADOS = new Set([
   'Urna', 'Clusters', 'Incremental', 'Estratificado', 'Estratificacion', 'SiArbol',
   'PasoCNN', 'PasoENN', 'PasoMultiedit', 'PasoIB3', 'PasoDROP3', 'PasoRMHC', 'PasoCHC', 'PasoSSMA',
-  'Knn',
+  'Knn', 'PasoChiMerge', 'PasoMDLP', 'PasoLista', 'PasoReglasArbol', 'NaiveBayes', 'Perceptron', 'Prism', 'RegresionLineal', 'Sdr', 'ComiteGeneral', 'ComiteBagging', 'ComiteBoosting', 'PasoZeroR', 'PasoOneR', 'ArbolTDIDT', 'ArbolID3', 'ArbolC45', 'ArbolCART',
 ]);

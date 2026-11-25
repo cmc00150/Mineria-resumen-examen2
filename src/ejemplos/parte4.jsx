@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Marco, COLORES, escala, Ejes } from './comun.jsx';
 import { metricas, minimosCuadrados, redondear, media, entropia, gini } from '../lib/stats.js';
 import { anim, dibujar, latido, stagger } from '../lib/anim.js';
+import { usePasos, Controles, Mensaje } from '../lib/traza.jsx';
 
 // ───────── Métricas de error ─────────
 const REALES = [54, 41, 34, 19, 18, 20, 171, 41];
@@ -65,6 +66,19 @@ export function RegresionLineal() {
     return { A: Math.exp(a.a), b: a.b, aStar: a.a };
   }, [pts]);
   const f = tipo === 'lineal' ? (x) => ajLin.a + ajLin.b * x : (x) => ajExp.A * Math.exp(ajExp.b * x);
+  const frames = useMemo(() => {
+    const L = tipo === 'lineal';
+    const aj = L ? ajLin : { mx: ajLin.mx, my: ajLin.my };
+    return [
+      { e: '0', msg: `${pts.length} puntos (xᵢ, yᵢ). ${L ? 'Arrastra uno hacia arriba o abajo y observa cómo cambia el ajuste.' : 'Para el modelo exponencial se ajusta una recta a (x, ln y) y se deshace el logaritmo.'}` },
+      { e: '1', msg: `Medias: x̄ = ${redondear(ajLin.mx, 2)}, ȳ = ${redondear(ajLin.my, 2)} (la recta siempre pasa por el punto medio).${L ? '' : ' En el caso exponencial se usan las medias de x y de ln y.'}` },
+      { e: '2', msg: L ? `Pendiente b = Σ(xᵢ−x̄)(yᵢ−ȳ) / Σ(xᵢ−x̄)² = ${redondear(ajLin.b, 3)}.` : `Pendiente b = ${redondear(ajExp.b, 3)} (de la recta ln y = a* + b·x).` },
+      { e: '3', msg: L ? `Ordenada a = ȳ − b·x̄ = ${redondear(ajLin.a, 3)}.` : `a* = ${redondear(ajExp.aStar, 3)} y se deshace: a = e^(a*) = ${redondear(ajExp.A, 3)}.` },
+      { e: '4', msg: L ? `Recta ajustada: y = ${redondear(ajLin.a, 2)} + ${redondear(ajLin.b, 2)}·x.` : `Curva ajustada: y = ${redondear(ajExp.A, 2)}·e^(${redondear(ajExp.b, 2)}·x).` },
+    ];
+  }, [tipo, pts]); // eslint-disable-line
+  const p = usePasos(frames, { intervalo: 1000 });
+  const paso = p.frame.e ? Number(p.frame.e) : 0;
   const curva = Array.from({ length: 91 }, (_, i) => { const x = i / 10; const y = Math.max(-1, Math.min(12, f(x))); return `${i ? 'L' : 'M'}${sx(x)},${sy(y)}`; }).join('');
   const M = metricas(pts.map((p) => p.y), pts.map((p) => f(p.x)));
   const mover = (e) => {
@@ -74,7 +88,7 @@ export function RegresionLineal() {
     setPts((P) => P.map((p, i) => (i === arr ? { ...p, y: Math.max(0.2, Math.min(10.8, y)) } : p)));
   };
   const ref = useRef(null);
-  useEffect(() => { if (ref.current) dibujar([ref.current], { dur: 700 }); }, [tipo]);
+  useEffect(() => { if (ref.current) dibujar([ref.current], { dur: 700 }); }, [tipo, paso >= 4]);
   return (
     <Marco
       titulo="Arrastra los puntos arriba y abajo"
@@ -90,12 +104,15 @@ export function RegresionLineal() {
         ? <>Mínimos cuadrados: x̄ = {redondear(ajLin.mx, 2)}, ȳ = {redondear(ajLin.my, 2)}, b = Σ(x−x̄)(y−ȳ)/Σ(x−x̄)² = <b>{redondear(ajLin.b, 3)}</b>, a = ȳ − b·x̄ = <b>{redondear(ajLin.a, 3)}</b>. EMA {redondear(M.ema, 3)} · r {redondear(M.r, 3)}. Con los datos curvos la recta es «no tan apropiada».</>
         : <>Se ajusta ln y = a* + b·x con regresión lineal: a* = {redondear(ajExp.aStar, 3)}, b = <b>{redondear(ajExp.b, 3)}</b>, y se deshace a = e^(a*) = <b>{redondear(ajExp.A, 3)}</b>. EMA {redondear(M.ema, 3)} · r {redondear(M.r, 3)}.</>}
     >
+      <Controles p={p} />
+      <Mensaje>{p.frame.msg}</Mensaje>
       <svg ref={svg} viewBox={`0 0 ${W} ${H}`} onPointerMove={mover} onPointerUp={() => setArr(null)} onPointerLeave={() => setArr(null)} style={{ touchAction: 'none' }}>
         <Ejes x0={0} x1={9} y0={0} y1={11} W={W} H={H} m={m} ticksX={9} ticksY={11} etqX="x" etqY="y" />
-        {pts.map((p, i) => <line key={`r${i}`} x1={sx(p.x)} x2={sx(p.x)} y1={sy(p.y)} y2={sy(Math.max(-1, Math.min(12, f(p.x))))} stroke={COLORES.b} strokeDasharray="3 3" />)}
-        <path ref={ref} d={curva} fill="none" stroke={COLORES.a} strokeWidth="2.5" />
-        {pts.map((p, i) => (
-          <circle key={i} cx={sx(p.x)} cy={sy(p.y)} r={arr === i ? 9 : 7} fill={COLORES.tinta} stroke="#fff" strokeWidth="2" style={{ cursor: 'ns-resize' }} onPointerDown={(e) => { e.currentTarget.setPointerCapture?.(e.pointerId); setArr(i); }} />
+        {paso >= 4 && pts.map((q, i) => <line key={`r${i}`} x1={sx(q.x)} x2={sx(q.x)} y1={sy(q.y)} y2={sy(Math.max(-1, Math.min(12, f(q.x))))} stroke={COLORES.b} strokeDasharray="3 3" />)}
+        {paso >= 1 && <><line x1={sx(ajLin.mx)} x2={sx(ajLin.mx)} y1={m.t} y2={H - m.b} stroke="#a9b5ab" strokeDasharray="4 3" /><line x1={m.l} x2={W - m.r} y1={sy(ajLin.my)} y2={sy(ajLin.my)} stroke="#a9b5ab" strokeDasharray="4 3" /><circle cx={sx(ajLin.mx)} cy={sy(ajLin.my)} r="6" fill="none" stroke={COLORES.d} strokeWidth="2.5" /></>}
+        {paso >= 4 && <path ref={ref} d={curva} fill="none" stroke={COLORES.a} strokeWidth="2.5" />}
+        {pts.map((q, i) => (
+          <circle key={i} cx={sx(q.x)} cy={sy(q.y)} r={arr === i ? 9 : 7} fill={COLORES.tinta} stroke="#fff" strokeWidth="2" style={{ cursor: 'ns-resize' }} onPointerDown={(e) => { e.currentTarget.setPointerCapture?.(e.pointerId); setArr(i); }} />
         ))}
       </svg>
     </Marco>
@@ -105,17 +122,29 @@ export function RegresionLineal() {
 // ───────── SDR: elegir el corte de un árbol de regresión ─────────
 const SDR_DATOS = [[1, 12], [2, 14], [3, 13], [4, 15], [5, 14], [6, 31], [7, 29], [8, 33], [9, 30], [10, 46], [11, 44], [12, 47]];
 const sdv = (zs) => { if (zs.length < 2) return 0; const m = media(zs); return Math.sqrt(zs.reduce((s, z) => s + (z - m) ** 2, 0) / zs.length); };
+const SDR_YS = SDR_DATOS.map((d) => d[1]);
+const SDR_CORTES = SDR_DATOS.slice(0, -1).map(([x]) => {
+  const t = x + 0.5;
+  const A = SDR_DATOS.filter((d) => d[0] <= t).map((d) => d[1]);
+  const B = SDR_DATOS.filter((d) => d[0] > t).map((d) => d[1]);
+  return { t, A, B, sdr: sdv(SDR_YS) - (A.length / SDR_YS.length) * sdv(A) - (B.length / SDR_YS.length) * sdv(B) };
+});
+const SDR_MEJOR = SDR_CORTES.reduce((a, b) => (b.sdr > a.sdr ? b : a));
+const SDR_FRAMES = [
+  { e: '0', i: 4, msg: `12 ejemplos con objetivo numérico: sd(T) = ${redondear(sdv(SDR_YS), 2)}.` },
+  ...SDR_CORTES.map((c, j) => ({ e: '1', i: j, msg: `Corte x ≤ ${c.t}: SDR = sd(T) − Σ |Tᵢ|/|T|·sd(Tᵢ) = ${redondear(c.sdr, 3)}.` })),
+  { e: '2', i: SDR_CORTES.indexOf(SDR_MEJOR), mejor: true, msg: `Se divide por el de mayor SDR: x ≤ ${SDR_MEJOR.t} (SDR ${redondear(SDR_MEJOR.sdr, 3)}).` },
+  { e: '3', i: SDR_CORTES.indexOf(SDR_MEJOR), mejor: true, msg: 'Recursión: cada mitad se volvería a dividir hasta que su desviación sea pequeña (aquí ya lo es).' },
+  { e: '4', i: SDR_CORTES.indexOf(SDR_MEJOR), mejor: true, medias: true, msg: `Hoja = media de sus ejemplos: ${redondear(media(SDR_MEJOR.A), 1)} (izquierda) y ${redondear(media(SDR_MEJOR.B), 1)} (derecha).` },
+  { e: '5', i: SDR_CORTES.indexOf(SDR_MEJOR), mejor: true, medias: true, msg: 'Por último se poda el árbol para que generalice (reemplazar subárboles por hojas).' },
+];
 export function Sdr() {
-  const ys = SDR_DATOS.map((d) => d[1]);
-  const cortes = SDR_DATOS.slice(0, -1).map(([x], i) => {
-    const t = x + 0.5;
-    const A = SDR_DATOS.filter((d) => d[0] <= t).map((d) => d[1]);
-    const B = SDR_DATOS.filter((d) => d[0] > t).map((d) => d[1]);
-    return { t, A, B, sdr: sdv(ys) - (A.length / ys.length) * sdv(A) - (B.length / ys.length) * sdv(B) };
-  });
-  const [i, setI] = useState(4);
+  const cortes = SDR_CORTES;
+  const mejor = SDR_MEJOR;
+  const ys = SDR_YS;
+  const p = usePasos(SDR_FRAMES, { intervalo: 650 });
+  const i = p.frame.i;
   const c = cortes[i];
-  const mejor = cortes.reduce((a, b) => (b.sdr > a.sdr ? b : a));
   const ref = useRef(null);
   useEffect(() => { if (ref.current) anim(ref.current.querySelectorAll('.media'), { opacity: [0, 1], duration: 300 }); }, [i]);
   const W = 520, H = 250, m = { l: 34, r: 10, t: 10, b: 28 };
@@ -124,10 +153,9 @@ export function Sdr() {
   return (
     <Marco
       titulo="Elegir el corte que más reduce la desviación típica"
-      controles={<button className="boton" onClick={() => setI(cortes.indexOf(mejor))} type="button">Ir al mejor corte</button>}
       pie={<>sd(T) = {redondear(sdv(ys), 2)}. Con x ≤ {c.t}: sd(T₁) = {redondear(sdv(c.A), 2)} ({c.A.length} ej.), sd(T₂) = {redondear(sdv(c.B), 2)} ({c.B.length} ej.) → SDR = <b>{redondear(c.sdr, 3)}</b>. El mejor corte es x ≤ {mejor.t} (SDR {redondear(mejor.sdr, 3)}). Cada hoja predice la media de sus ejemplos (líneas).</>}
     >
-      <label className="fila-control">Corte <input type="range" min={0} max={cortes.length - 1} value={i} onChange={(e) => setI(Number(e.target.value))} /> x ≤ {c.t}</label>
+      <Controles p={p} />
       <svg ref={ref} viewBox={`0 0 ${W} ${H}`}>
         <Ejes x0={0} x1={13} y0={0} y1={52} W={W} H={H} m={m} ticksX={13} ticksY={4} />
         {cortes.map((k, j) => <rect key={j} x={sx(k.t) - 5} y={H - m.b - (k.sdr / mejor.sdr) * 50} width={10} height={(k.sdr / mejor.sdr) * 50} fill={j === i ? COLORES.d : '#e4e9e2'} />)}
@@ -136,6 +164,7 @@ export function Sdr() {
         <line className="media" x1={sx(c.t)} x2={sx(12.5)} y1={sy(mB)} y2={sy(mB)} stroke={COLORES.a} strokeWidth="3" />
         {SDR_DATOS.map(([x, y], j) => <circle key={j} cx={sx(x)} cy={sy(y)} r={5} fill={COLORES.tinta} />)}
       </svg>
+      <Mensaje>{p.frame.msg}</Mensaje>
     </Marco>
   );
 }

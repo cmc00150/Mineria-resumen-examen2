@@ -1113,7 +1113,7 @@ export const preparacion = [
     salida: 'prep',
     tema: 'T4 · 3',
     parte: 1,
-    resumen: 'Usan la clase para elegir los cortes. Los dos del temario: MDLP (división) y ChiMerge (mezcla).',
+    resumen: 'Usan la clase para elegir los cortes. Los dos grandes: MDLP (división) y ChiMerge (mezcla). Además, OneR hace binning supervisado.',
     secciones: [
       {
         t: 'Los dos clásicos',
@@ -1130,7 +1130,12 @@ export const preparacion = [
           },
         ],
       },
+      {
+        t: 'Binning supervisado: OneR',
+        b: ['En la taxonomía de Liu el binning supervisado es **1R** ([[oner]]): ordena los valores y agrupa los consecutivos cuya clase mayoritaria coincide, exigiendo un tamaño mínimo de intervalo (minBucketSize en Weka).'],
+      },
     ],
+    rel: [['oner', 'discretiza por binning supervisado'], ['igual-frecuencia', 'el binning que ignora la clase']],
   },
   {
     id: 'mdlp',
@@ -1170,6 +1175,7 @@ export const preparacion = [
         ],
       },
     ],
+    ejemplo: 'PasoMDLP',
     rel: [
       ['entropia', 'mide la pureza de cada intervalo'],
       ['id3', 'misma ganancia de información'],
@@ -1202,8 +1208,8 @@ export const preparacion = [
         t: 'Mientras no se cumpla la parada',
         pasos: [
           { k: 'paso', t: 'Calcular χ² de cada par de intervalos adyacentes' },
+          { k: 'si', t: '¿El menor χ² supera el umbral y hay ≤ máximo de intervalos?', si: 'parar', no: 'mezclar' },
           { k: 'paso', t: 'Mezclar el par con menor χ²' },
-          { k: 'si', t: '¿Todos los χ² superan el umbral de significancia (o se alcanzó el máximo de intervalos)?', si: 'parar', no: 'seguir mezclando' },
         ],
       },
       { k: 'out', t: 'Intervalos finales' },
@@ -1217,7 +1223,7 @@ export const preparacion = [
         ],
       },
     ],
-    ejemplo: 'ChiMerge',
+    ejemplo: 'PasoChiMerge',
     rel: [['mdlp', 'el otro supervisado clásico, en dirección contraria']],
   },
 ];

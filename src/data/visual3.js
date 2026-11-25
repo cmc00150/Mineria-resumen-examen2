@@ -188,6 +188,7 @@ export const VISUAL3 = {
     weka: 'Bagging',
     bloques: [
       { ti: 'Fuentes de error', tarjetas: [{ i: '≈', t: 'Ruido', s: 'en la función objetivo' }, { i: '↗', t: 'Sesgo', s: 'no puede aprenderla' }, { i: '↕', t: 'Varianza', s: 'por el muestreo', c: 'si' }] },
+      { ti: 'La muestra bootstrap', demo: 'Bootstrap' },
       { clave: 'Bagging ataca la **varianza** · fronteras de 4 árboles / 3 redes → combinación más suave' },
     ],
   },
@@ -217,7 +218,8 @@ export const VISUAL3 = {
     ],
     bloques: [
       { chips: ['para si εₜ > 0,5', 'Zₜ normaliza', 'acierta → peso × e^(−α)', 'falla → peso × e^(α)'] },
-      { ti: 'Ejemplo de las diapositivas', barras: { series: [{ n: 'ε', c: 'no' }, { n: 'α', c: 'si' }], max: 1, filas: [{ e: 'Ronda 1', v: [0.3, 0.42] }, { e: 'Ronda 2', v: [0.21, 0.65] }, { e: 'Ronda 3', v: [0.14, 0.92] }] } },
+      { ti: 'Ejemplo de las diapositivas (10 puntos, 4 rondas)', demo: 'AdaBoost' },
+      { ti: 'Valores de las diapositivas', barras: { series: [{ n: 'ε', c: 'no' }, { n: 'α', c: 'si' }], max: 1, filas: [{ e: 'Ronda 1', v: [0.3, 0.42] }, { e: 'Ronda 2', v: [0.21, 0.65] }, { e: 'Ronda 3', v: [0.14, 0.92] }] } },
     ],
     wekaBloques: [{ chips: ['Bagging y AdaBoostM1 sobre nci.arff con C4.5 y 5-cv'] }],
   },

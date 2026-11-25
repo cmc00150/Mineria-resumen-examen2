@@ -16,7 +16,7 @@ export function TrazaProvider({ children }) {
 export const useTraza = () => useContext(Ctx) || VACIO;
 
 /** Reproductor de fotogramas. frames: [{ e, msg, ... }] */
-export function usePasos(frames, { intervalo = 700 } = {}) {
+export function usePasos(frames, { intervalo = 700, sync = true } = {}) {
   const t = useTraza();
   const marcar = t.marcar;
   const [i, setI] = useState(0);
@@ -29,9 +29,10 @@ export function usePasos(frames, { intervalo = 700 } = {}) {
   }, [frames]);
 
   useEffect(() => {
+    if (!sync) return;
     const f = frames[i];
     marcar(f && f.e != null ? f.e : null);
-  }, [i, frames, marcar]);
+  }, [i, frames, marcar, sync]);
 
   useEffect(() => {
     if (!play) return undefined;
@@ -49,13 +50,14 @@ export function usePasos(frames, { intervalo = 700 } = {}) {
   }, []);
 
   useEffect(() => {
+    if (!sync) return undefined;
     t.reproducir.current = reproducir;
     return () => {
       if (t.reproducir.current === reproducir) t.reproducir.current = null;
     };
   }, [reproducir]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => () => marcar(null), [marcar]);
+  useEffect(() => () => { if (sync) marcar(null); }, [marcar, sync]);
 
   return {
     i,

@@ -3,6 +3,7 @@ import { Marco, COLORES, escala, Ejes } from './comun.jsx';
 import { TENIS_NUM } from './datos.js';
 import { media, desv, normal, redondear, semilla } from '../lib/stats.js';
 import { anim, contar, dibujar, latido, stagger, linea } from '../lib/anim.js';
+import { usePasos, Controles, Mensaje } from '../lib/traza.jsx';
 
 // ───────── Estructura de Naïve Bayes ─────────
 export function EstrellaNB() {
@@ -50,12 +51,32 @@ export function NaiveBayes() {
   });
   const tot = calc.reduce((s, c) => s + c.prod, 0);
   const [mostr, setMostr] = useState([0.5, 0.5]);
-  const objetivo = calc.map((c) => (tot ? c.prod / tot : 0.5));
+  const frames = useMemo(() => {
+    const fr = [{ e: '0', ci: -1, k: -1, msg: 'Nuevo caso x. Para cada clase se parte de su prior y se multiplica por la probabilidad de cada atributo.' }];
+    calc.forEach((c, ci) => {
+      fr.push({ e: '1.0', ci, k: 0, msg: `Clase ${c.c === 'yes' ? 'SÍ' : 'NO'}: se empieza con P(${c.c === 'yes' ? 'sí' : 'no'}) = ${c.n}/${TENIS_NUM.length} = ${redondear(c.prior, 3)}.` });
+      const fs = [c.po, c.pw, c.nt, c.nh];
+      const nom = [`P(${x.outlook} | ${c.c})`, `P(windy=${x.windy} | ${c.c})`, `N(${x.temp}; μ, σ)`, `N(${x.hum}; μ, σ)`];
+      let run = c.prior;
+      fs.forEach((v, k) => {
+        run *= v;
+        fr.push({ e: '1.1', ci, k: k + 1, msg: `× ${nom[k]} = ${v < 0.001 && v > 0 ? v.toExponential(2) : redondear(v, 4)} → producto parcial ${run ? run.toExponential(3) : 0}.` });
+      });
+    });
+    const mx = calc.reduce((a, b) => (b.prod > a.prod ? b : a));
+    fr.push({ e: '2', ci: 2, k: 5, norm: true, msg: `Normalizar: cada producto entre la suma (${tot.toExponential(3)}) → ${calc.map((c) => `${c.c === 'yes' ? 'SÍ' : 'NO'} ${redondear(tot ? c.prod / tot : 0, 3)}`).join(' · ')}.` });
+    fr.push({ e: '3', ci: 2, k: 5, norm: true, msg: `Clase con mayor valor (MAP): «${mx.c === 'yes' ? 'SÍ' : 'NO'}».` });
+    return fr;
+  }, [x, laplace]); // eslint-disable-line
+  const p = usePasos(frames, { intervalo: 900 });
+  const fr = p.frame;
+  const vis = (ci, fila) => fr.ci > ci || (fr.ci === ci && fr.k >= fila);
+  const objetivo = calc.map((c) => (tot && fr.norm ? c.prod / tot : 0.5));
   useEffect(() => {
     const desde = [...mostr];
     const a = contar(0, 1, (t) => setMostr(desde.map((d, i) => d + (objetivo[i] - d) * t)), 500);
     return () => a && a.pause && a.pause();
-  }, [objetivo[0]]); // eslint-disable-line
+  }, [objetivo[0], fr.norm]); // eslint-disable-line
   const W = 420, H = 150, m = { l: 30, r: 10, t: 10, b: 26 };
   const sx = escala(55, 95, m.l, W - m.r);
   const maxN = Math.max(...est.map((e) => normal(e.mt, e.mt, e.st)));
@@ -74,17 +95,19 @@ export function NaiveBayes() {
         <label className="fila-control">temp <input type="range" min={60} max={92} value={x.temp} onChange={(e) => setX({ ...x, temp: Number(e.target.value) })} /> {x.temp}</label>
         <label className="fila-control">hum <input type="range" min={60} max={100} value={x.hum} onChange={(e) => setX({ ...x, hum: Number(e.target.value) })} /> {x.hum}</label>
       </div>
+      <Controles p={p} />
+      <Mensaje>{fr.msg}</Mensaje>
       <div className="dos-col">
         <div className="tabla-env">
           <table className="t">
             <thead><tr><th></th>{calc.map((c) => <th key={c.c}>{c.c === 'yes' ? 'SÍ' : 'NO'}</th>)}</tr></thead>
             <tbody>
-              <tr><td>P(clase)</td>{calc.map((c) => <td key={c.c} className="num">{c.n}/14 = {redondear(c.prior, 3)}</td>)}</tr>
-              <tr><td>P({x.outlook} | clase)</td>{calc.map((c) => <td key={c.c} className="num">{redondear(c.po, 3)}</td>)}</tr>
-              <tr><td>P(windy={x.windy} | clase)</td>{calc.map((c) => <td key={c.c} className="num">{redondear(c.pw, 3)}</td>)}</tr>
-              <tr><td>N({x.temp}; μ, σ)</td>{calc.map((c) => <td key={c.c} className="num">{f(c.nt)}<br /><small>μ={redondear(c.mt, 2)} σ={redondear(c.st, 2)}</small></td>)}</tr>
-              <tr><td>N({x.hum}; μ, σ)</td>{calc.map((c) => <td key={c.c} className="num">{f(c.nh)}<br /><small>μ={redondear(c.mh, 2)} σ={redondear(c.sh, 2)}</small></td>)}</tr>
-              <tr><td><b>Producto</b></td>{calc.map((c) => <td key={c.c} className="num"><b>{c.prod ? c.prod.toExponential(3) : 0}</b></td>)}</tr>
+              <tr><td>P(clase)</td>{calc.map((c, i) => <td key={c.c} className="num">{vis(i, 0) ? `${c.n}/14 = ${redondear(c.prior, 3)}` : '·'}</td>)}</tr>
+              <tr><td>P({x.outlook} | clase)</td>{calc.map((c, i) => <td key={c.c} className="num">{vis(i, 1) ? redondear(c.po, 3) : '·'}</td>)}</tr>
+              <tr><td>P(windy={x.windy} | clase)</td>{calc.map((c, i) => <td key={c.c} className="num">{vis(i, 2) ? redondear(c.pw, 3) : '·'}</td>)}</tr>
+              <tr><td>N({x.temp}; μ, σ)</td>{calc.map((c, i) => <td key={c.c} className="num">{vis(i, 3) ? <>{f(c.nt)}<br /><small>μ={redondear(c.mt, 2)} σ={redondear(c.st, 2)}</small></> : '·'}</td>)}</tr>
+              <tr><td>N({x.hum}; μ, σ)</td>{calc.map((c, i) => <td key={c.c} className="num">{vis(i, 4) ? <>{f(c.nh)}<br /><small>μ={redondear(c.mh, 2)} σ={redondear(c.sh, 2)}</small></> : '·'}</td>)}</tr>
+              <tr><td><b>Producto</b></td>{calc.map((c, i) => <td key={c.c} className="num"><b>{vis(i, 4) ? (c.prod ? c.prod.toExponential(3) : 0) : '·'}</b></td>)}</tr>
             </tbody>
           </table>
         </div>
@@ -154,33 +177,42 @@ const ENTRADAS = [[0, 0], [0, 1], [1, 0], [1, 1]];
 const r1 = (v) => Math.round(v * 1000) / 1000;
 export function Perceptron() {
   const [fn, setFn] = useState('OR');
-  const [log, setLog] = useState([]);
-  const [w, setW] = useState([0.1, 0.3]);
   const a = 0.2, th = 0.5;
   const ref = useRef(null);
-  const avanzar = (n) => {
-    let l = [...log];
-    let ww = [...w];
-    for (let k = 0; k < n; k++) {
-      const i = l.length % 4;
-      const [x1, x2] = ENTRADAS[i];
-      const z = FUNCS[fn][i];
-      const s = r1(ww[0] * x1 + ww[1] * x2);
-      const y = s > th ? 1 : 0;
-      const D = z - y;
-      const nw = [r1(ww[0] + a * D * x1), r1(ww[1] + a * D * x2)];
-      l.push({ it: Math.floor(l.length / 4) + 1, x1, x2, z, w1: ww[0], w2: ww[1], y, D, nw });
-      ww = nw;
+  const { filas, frames } = useMemo(() => {
+    const l = [];
+    let ww = [0.1, 0.3];
+    const fr = [{ e: '0', n: 0, parte: 0, msg: 'Pesos iniciales W₁ = 0,1 y W₂ = 0,3. Se recorren los 4 ejemplos una y otra vez.' }];
+    for (let it = 0; it < 12; it++) {
+      for (let i = 0; i < 4; i++) {
+        const [x1, x2] = ENTRADAS[i];
+        const z = FUNCS[fn][i];
+        const s = r1(ww[0] * x1 + ww[1] * x2);
+        const y = s > th ? 1 : 0;
+        const D = z - y;
+        const nw = [r1(ww[0] + a * D * x1), r1(ww[1] + a * D * x2)];
+        l.push({ it: it + 1, x1, x2, z, w1: ww[0], w2: ww[1], y, D, nw });
+        const n = l.length;
+        fr.push({ e: '1.0.0', n, parte: 1, msg: `Ejemplo (${x1}, ${x2}), Z = ${z}: ${ww[0]}·${x1} + ${ww[1]}·${x2} = ${s} ${s > th ? '>' : '≤'} 0,5 → Y = ${y}.` });
+        fr.push({ e: '1.0.1', n, parte: 2, msg: `D = Z − Y = ${z} − ${y} = ${D}${D ? ' → hay error, hay que corregir.' : ' → acierta, los pesos no cambian.'}` });
+        fr.push({ e: '1.0.2', n, parte: 3, msg: D ? `Wᵢ ← Wᵢ + 0,2·${D}·Xᵢ → W₁ = ${nw[0]}, W₂ = ${nw[1]}.` : `Sin cambios: W₁ = ${nw[0]}, W₂ = ${nw[1]}.`, w: nw });
+        ww = nw;
+      }
+      if (l.slice(-4).every((r) => r.D === 0)) {
+        fr.push({ e: '2', n: l.length, parte: 3, fin: true, msg: `Una iteración completa sin cambios → convergido con W₁ = ${ww[0]}, W₂ = ${ww[1]}.` });
+        break;
+      }
+      if (it === 11) fr.push({ e: '2', n: l.length, parte: 3, fin: true, msg: 'Tras 12 iteraciones los pesos siguen cambiando: no converge (XOR no es linealmente separable).' });
     }
-    setLog(l);
-    setW(ww);
-  };
-  const paso = () => avanzar(1);
-  const iteracion = () => avanzar(4 - (log.length % 4));
-  const reset = (f = fn) => { setFn(f); setLog([]); setW([0.1, 0.3]); };
-  useEffect(() => { if (ref.current) anim(ref.current.querySelector('.frontera'), { opacity: [0.2, 1], duration: 400 }); }, [w]);
-  const ultimaIt = log.length >= 4 ? log.slice(-4) : [];
-  const convergido = ultimaIt.length === 4 && log.length % 4 === 0 && ultimaIt.every((r) => r.D === 0);
+    return { filas: l, frames: fr };
+  }, [fn]);
+  const p = usePasos(frames, { intervalo: 750 });
+  const fp = p.frame;
+  const log = filas.slice(0, fp.n);
+  const w = fp.parte >= 3 && log.length ? log[log.length - 1].nw : log.length ? [log[log.length - 1].w1, log[log.length - 1].w2] : [0.1, 0.3];
+  const reset = (f = fn) => { setFn(f); };
+  useEffect(() => { if (ref.current) anim(ref.current.querySelector('.frontera'), { opacity: [0.2, 1], duration: 400 }); }, [w[0], w[1]]);
+  const convergido = fp.fin && fp.msg.startsWith('Una iteración');
   const W = 260, H = 240, sx = escala(-0.3, 1.3, 20, W - 10), sy = escala(-0.3, 1.3, H - 20, 10);
   // frontera: w1 x1 + w2 x2 = 0.5
   const pf = [];
@@ -196,12 +228,9 @@ export function Perceptron() {
       }
       pie={convergido ? `Convergido: una iteración entera sin errores. Pesos finales ${w[0]} y ${w[1]}.` : fn === 'XOR' ? 'XOR no es linealmente separable: ninguna recta separa los 1 de los 0, así que los pesos nunca se estabilizan. Hace falta una capa oculta (MLP).' : 'Pulsa «Siguiente ejemplo» y mira cómo D = Z − Y corrige los pesos solo cuando la salida es incorrecta.'}
     >
-      <div className="grupo-botones" style={{ marginBottom: 8 }}>
-        <button className="boton primario" onClick={paso} type="button">Siguiente ejemplo</button>
-        <button className="boton" onClick={iteracion} type="button">Iteración completa</button>
-        <button className="boton" onClick={() => reset()} type="button">Reiniciar</button>
-        <span className="marcador">W₁ = <b>{w[0]}</b> · W₂ = <b>{w[1]}</b></span>
-      </div>
+      <Controles p={p} />
+      <p className="marcador">W₁ = <b>{w[0]}</b> · W₂ = <b>{w[1]}</b></p>
+      <Mensaje>{fp.msg}</Mensaje>
       <div className="dos-col">
         <div className="tabla-env" style={{ maxHeight: 280, overflow: 'auto' }}>
           <table className="t">
@@ -209,7 +238,9 @@ export function Perceptron() {
             <tbody>
               {log.map((r, i) => (
                 <tr key={i} className={i === log.length - 1 ? 'resaltado' : ''}>
-                  <td>{r.it}</td><td>{r.x1}</td><td>{r.x2}</td><td>{r.z}</td><td>{r.w1}</td><td>{r.w2}</td><td>{r.y}</td><td className={r.D ? 'mal' : ''}>{r.D}</td><td>{r.nw[0]}</td><td>{r.nw[1]}</td>
+                  <td>{r.it}</td><td>{r.x1}</td><td>{r.x2}</td><td>{r.z}</td><td>{r.w1}</td><td>{r.w2}</td>
+                  <td>{i < log.length - 1 || fp.parte >= 1 ? r.y : '·'}</td><td className={r.D ? 'mal' : ''}>{i < log.length - 1 || fp.parte >= 2 ? r.D : '·'}</td>
+                  <td>{i < log.length - 1 || fp.parte >= 3 ? r.nw[0] : '·'}</td><td>{i < log.length - 1 || fp.parte >= 3 ? r.nw[1] : '·'}</td>
                 </tr>
               ))}
             </tbody>

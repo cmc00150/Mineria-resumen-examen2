@@ -423,8 +423,8 @@ export const VISUAL1 = {
     bloques: [
       {
         matriz: {
-          cab: ['', '[[mdlp|MDLP]] · Fayyad e Irani 1993', '[[chimerge|ChiMerge]] · Kerber 1992'],
-          filas: [['Tipo', 'división · top-down', 'mezcla · bottom-up'], ['Mide', 'entropía / ganancia', 'χ² entre vecinos'], ['Para', 'umbral MDL (δ)', 'significancia + máx. intervalos']],
+          cab: ['', '[[mdlp|MDLP]] · Fayyad e Irani 1993', '[[chimerge|ChiMerge]] · Kerber 1992', '[[oner|OneR (1R)]] · Holte 1993'],
+          filas: [['Tipo', 'división · top-down', 'mezcla · bottom-up', 'binning supervisado'], ['Mide', 'entropía / ganancia', 'χ² entre vecinos', 'clase mayoritaria del cubo'], ['Para', 'umbral MDL (δ)', 'significancia + máx. intervalos', 'tamaño mínimo de cubo']],
         },
       },
     ],

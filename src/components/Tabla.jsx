@@ -1,13 +1,15 @@
 import { useMemo, useState } from 'react';
 import { ALGORITMOS, POR_ID, SALIDAS, ancestros, nombreCorto } from '../data/index.js';
 import { EtiquetaSalida, Texto } from './Texto.jsx';
+import { Picto, NOMBRE_PICTO } from './Iconos.jsx';
 
 const COLUMNAS = [
   { k: 'nombre', t: 'Algoritmo', v: (n) => nombreCorto(n) },
   { k: 'rama', t: 'Rama', v: (n) => nombreCorto(POR_ID[n.padre]) },
   { k: 'salida', t: 'Salida', v: (n) => SALIDAS[n.salida]?.nombre },
-  { k: 'interp', t: 'Interpretable', v: (n) => n.ficha?.interpretable || '—' },
-  { k: 'devuelve', t: 'Qué devuelve', v: (n) => n.ficha?.devuelve || '' },
+  { k: 'entrada', t: 'Entrada', v: (n) => NOMBRE_PICTO[n.visual?.entrada] || '' },
+  { k: 'interp', t: 'Caja', v: (n) => NOMBRE_PICTO[n.visual?.caja] || '' },
+  { k: 'devuelve', t: 'Devuelve', v: (n) => NOMBRE_PICTO[n.visual?.devuelve] || '' },
   { k: 'tema', t: 'Tema', v: (n) => n.tema },
 ];
 
@@ -29,7 +31,7 @@ export default function Tabla() {
       <p className="migas"><a href="#/">Mapa</a><span className="sep"> / </span>Tabla</p>
       <h1>Todos los algoritmos</h1>
       <p style={{ fontSize: 19, color: 'var(--tinta-2)', marginTop: 10, maxWidth: '62ch' }}>
-        Las {ALGORITMOS.length} fichas de algoritmo en una tabla para comparar de un vistazo. Pulsa una cabecera para ordenar.
+        {ALGORITMOS.length} algoritmos · pulsa una cabecera para ordenar
       </p>
       <div className="filtros" role="group" aria-label="Filtrar por salida">
         <button className={`boton ${filtro === 'todas' ? 'activo' : ''}`} onClick={() => setFiltro('todas')} type="button">Todas</button>
@@ -58,8 +60,9 @@ export default function Tabla() {
                 <td><a href={`#/n/${n.id}`}>{nombreCorto(n)}</a></td>
                 <td>{ancestros(n.id).slice(2).map((a) => nombreCorto(a)).join(' › ') || nombreCorto(POR_ID[n.padre])}</td>
                 <td><EtiquetaSalida salida={n.salida} /></td>
-                <td><Texto t={n.ficha?.interpretable || '—'} /></td>
-                <td><Texto t={n.ficha?.devuelve} /></td>
+                <td title={NOMBRE_PICTO[n.visual?.entrada]}><Picto k={n.visual?.entrada} size={26} /></td>
+                <td title={NOMBRE_PICTO[n.visual?.caja]}><Picto k={n.visual?.caja} size={26} /></td>
+                <td title={n.ficha?.devuelve}><span style={{ display: 'inline-flex', gap: 8, alignItems: 'center' }}><Picto k={n.visual?.devuelve} size={26} />{NOMBRE_PICTO[n.visual?.devuelve]}</span></td>
                 <td style={{ whiteSpace: 'nowrap' }}>{n.tema}</td>
               </tr>
             ))}

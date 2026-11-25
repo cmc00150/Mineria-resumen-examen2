@@ -18,16 +18,18 @@ export default function RelGrafo({ id }) {
   [...(MENCIONES[id] || [])].forEach((d) => { if (!vistos.has(d) && POR_ID[d] && rel.length < 10) { vistos.add(d); rel.push({ id: d, tipo: 'men', motivo: 'lo menciona' }); } });
 
   const W = 820;
-  const filasHijos = Math.ceil(hijos.length / 5);
+  const paso = Math.max(150, ...hijos.map((h) => ancho(nombreCorto(POR_ID[h.id])) + 14));
+  const porFila = Math.max(1, Math.min(5, Math.floor((W - 20) / paso)));
+  const filasHijos = Math.ceil(hijos.length / porFila);
   const H = 250 + Math.max(0, filasHijos - 1) * 44 + Math.max(0, Math.ceil(rel.length / 2) - 4) * 40;
   const cx = W / 2, cy = padre.length ? 118 : 90;
   const pos = [];
   padre.forEach((p) => pos.push({ ...p, x: cx, y: 26 }));
   hijos.forEach((h, i) => {
-    const fila = Math.floor(i / 5);
-    const enFila = Math.min(5, hijos.length - fila * 5);
-    const k = i % 5;
-    pos.push({ ...h, x: cx + (k - (enFila - 1) / 2) * 150, y: H - 30 - (filasHijos - 1 - fila) * 44 });
+    const fila = Math.floor(i / porFila);
+    const enFila = Math.min(porFila, hijos.length - fila * porFila);
+    const k = i % porFila;
+    pos.push({ ...h, x: cx + (k - (enFila - 1) / 2) * paso, y: H - 30 - (filasHijos - 1 - fila) * 44 });
   });
   const izq = rel.filter((_, i) => i % 2 === 0), der = rel.filter((_, i) => i % 2 === 1);
   [izq, der].forEach((lado, s) => lado.forEach((r, i) => {

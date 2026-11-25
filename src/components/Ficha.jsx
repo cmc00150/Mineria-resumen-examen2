@@ -5,6 +5,7 @@ import Bloques, { Demo } from './Bloques.jsx';
 import Esquema from './Esquema.jsx';
 import RelGrafo from './RelGrafo.jsx';
 import { Picto, NOMBRE_PICTO } from './Iconos.jsx';
+import BloquesVisuales from './Visual.jsx';
 import { entrada } from '../lib/anim.js';
 
 const TIPOS = { familia: 'Familia', algoritmo: 'Algoritmo', concepto: 'Concepto' };
@@ -133,7 +134,7 @@ export default function Ficha({ id }) {
       <p className="resumen"><Texto t={n.resumen} /></p>
       {v ? (
         <div className="insignias">
-          <Insignia k={SAL_PICTO[n.salida]} texto={SALIDAS[n.salida]?.largo} />
+          {n.salida && <Insignia k={SAL_PICTO[n.salida]} texto={SALIDAS[n.salida]?.largo} />}
           {v.entrada && <Insignia k={v.entrada} />}
           {v.caja && <Insignia k={v.caja} />}
           <span className="insignia tema">{n.tema}</span>
@@ -178,10 +179,10 @@ export default function Ficha({ id }) {
     return (
       <article ref={ref} key={id}>
         {cabecera}
-        {(n.esquema || n.ficha) && (
-          <div className={n.esquema ? 'lamina ancho' : 'columna'} style={{ marginTop: 26 }}>
+        {(n.esquema || v.devuelve) && (
+          <div className={n.esquema && v.devuelve ? 'lamina ancho' : 'columna'} style={{ marginTop: 26 }}>
             {n.esquema && <Esquema pasos={n.esquema} />}
-            <TarjetaVisual n={n} />
+            {v.devuelve && <TarjetaVisual n={n} />}
           </div>
         )}
         <div className="ancho">
@@ -190,6 +191,7 @@ export default function Ficha({ id }) {
               <Demo nombre={v.infografia} />
             </section>
           )}
+          {v.bloques && <BloquesVisuales bloques={v.bloques} />}
           {v.formulas && (
             <section className="seccion">
               <h2>Fórmulas</h2>

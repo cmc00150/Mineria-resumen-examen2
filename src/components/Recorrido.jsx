@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import { PARTES, ORDEN_PARTE, POR_ID, SALIDAS, ancestros, nombreCorto } from '../data/index.js';
 import { Texto, EtiquetaSalida } from './Texto.jsx';
 import { entrada } from '../lib/anim.js';
+import { Picto, NOMBRE_PICTO } from './Iconos.jsx';
 
 export default function Recorrido({ n }) {
   const parte = PARTES.find((p) => String(p.n) === String(n));
@@ -21,23 +22,23 @@ export default function Recorrido({ n }) {
       <p className="migas"><a href="#/">Mapa</a><span className="sep"> / </span>Parte {parte.romano}</p>
       <h1>{parte.nombre}</h1>
       <p className="resumen" style={{ fontSize: 19, color: 'var(--tinta-2)', marginTop: 10 }}>
-        {parte.temas}. Recorrido de lectura en el orden del árbol: primero cada familia y después sus algoritmos.
+        {parte.temas}
       </p>
       <ol className="recorrido" ref={ref}>
         {ids.map((id) => {
           const nodo = POR_ID[id];
           const prof = Math.min(4, ancestros(id).length - base);
           return (
-            <li key={id} className={`${nodo.tipo === 'familia' ? 'fam' : ''} prof-${prof}`}>
+            <li key={id} className={`${nodo.tipo === 'familia' ? 'fam' : ''} prof-${prof}`} title={nodo.resumen}>
               <a href={`#/n/${id}`}>
                 <h3>
+                  {nodo.visual?.devuelve && <Picto k={nodo.visual.devuelve} size={24} title={NOMBRE_PICTO[nodo.visual.devuelve]} />}
                   {nombreCorto(nodo)}
                   <EtiquetaSalida salida={nodo.salida} />
-                  {nodo.esquema && <span className="chip">esquema</span>}
-                  {nodo.ejemplo && <span className="chip">ejemplo interactivo</span>}
+                  {nodo.visual?.caja && <Picto k={nodo.visual.caja} size={20} title={NOMBRE_PICTO[nodo.visual.caja]} />}
+                  {nodo.ejemplo && <span className="chip">▶ ejemplo</span>}
                 </h3>
               </a>
-              <p><Texto t={nodo.resumen} /></p>
             </li>
           );
         })}

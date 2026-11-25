@@ -1,4 +1,5 @@
 import { lazy } from 'react';
+import * as c45 from './c45.jsx';
 import * as p1 from './parte1.jsx';
 import * as p2 from './parte2.jsx';
 import * as p3 from './parte3.jsx';
@@ -54,7 +55,8 @@ export const DEMOS = {
   ParticionEspacio: p2.ParticionEspacio,
   ArbolCredito: p2.ArbolCredito,
   Ganancia: p2.Ganancia,
-  UmbralC45: p2.UmbralC45,
+  UmbralC45: c45.UmbralC45,
+  HiloC45: c45.HiloC45,
   Prism: p2.Prism,
   Solapamiento: p2.Solapamiento,
   Codificacion: p2.Codificacion,

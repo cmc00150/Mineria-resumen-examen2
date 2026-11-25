@@ -202,23 +202,7 @@ export const VISUAL2 = {
     parametros: ['Confianza de poda', 'Mín. ejemplos por hoja'],
     weka: 'J48',
     avisos: [['Ratio de alturas: /13 → /15', 'La diapositiva calcula H(2/13, 2/13, 3/13, 4/13, 2/13), pero la altura tiene 6 rangos con 2, 2, 3, 4, 2 y 2 personas: debe ser H(2/15, 2/15, 3/15, 4/15, 2/15, 2/15). Y el último término pone log(13/3) en vez de log(13/2).']],
-    formulas: [
-      ['Ratio de ganancia', 'GainRatio(S,A) = \\dfrac{G(S,A)}{H\\big(\\tfrac{|S_1|}{|S|},\\dots,\\tfrac{|S_v|}{|S|}\\big)}'],
-      ['Corte numérico', 'x \\le \\theta \\;\\text{ o }\\; x > \\theta,\\quad \\theta = \\arg\\max G'],
-    ],
-    infografia: 'InfoC45',
-    bloques: [
-      { ti: 'Familia', chips: ['C4.5', 'C4.5 sin poda', 'C4.5-reglas', 'comercial: See5 / C5.0'] },
-      {
-        ti: 'Tests en los nodos',
-        tarjetas: [{ i: '⇄', t: 'Booleana', s: '2 ramas' }, { i: '⋔', t: 'Categórica', s: 'varias (se agrupan las de igual clase)' }, { i: '≤θ', t: 'Numérica', s: '2 ramas' }],
-      },
-      { ti: 'Para cuando', chips: ['sin variables o ejemplos', 'una sola clase', 'pocos ejemplos (umbral)'] },
-      { ti: 'Umbral para un atributo continuo', demo: 'UmbralC45' },
-      { ti: 'Umbral', chips: ['ordenar valores', 'probar cada xᵢ (i ≥ 2)', 'solo donde cambia la clase', 'el atributo puede repetirse más abajo', 'la discretización no se propaga'] },
-      { ti: 'Hoja', chips: ['clase mayoritaria de la rama'] },
-      { ti: 'Poda', vs: [{ t: 'Pre-poda', items: ['poca confianza → no dividir', 'parar si sube el error de validación'] }, { t: 'Post-poda (preferida)', c: 'si', items: ['reemplazar subárbol por hoja', 'elevar subárbol', 'mín. 2 ejemplos por hoja'] }] },
-    ],
+    infografia: 'HiloC45',
   },
   cart: {
     entrada: 'mixta', caja: 'blanca', devuelve: 'arbol-binario',

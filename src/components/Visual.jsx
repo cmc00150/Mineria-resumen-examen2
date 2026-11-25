@@ -235,7 +235,7 @@ function Bloque({ b }) {
       </div>
     );
   if (b.chips) return <div className="vb-chips">{b.chips.map((c, k) => <span key={k} className="vb-chip"><Texto t={c} /></span>)}</div>;
-  if (b.clave) return <div className="vb-clave"><span>★</span><Texto t={b.clave} /></div>;
+  if (b.clave) return <div className="vb-clave"><span>★</span><span><Texto t={b.clave} /></span></div>;
   if (b.aviso) return <div className="vb-aviso" title={b.aviso[1]}><span>⚠</span><span><Texto t={b.aviso[0]} />{b.aviso[1] && <small><Texto t={b.aviso[1]} /></small>}</span></div>;
   if (b.demo) return <Demo nombre={b.demo} />;
   if (b.pseudo) return <pre className="pseudo">{b.pseudo}</pre>;

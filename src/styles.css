@@ -488,3 +488,13 @@ tr.resaltado td { background: #e9f0fa !important; }
 .resultado-lista { font-family: var(--f-titulo); font-size: 16px; margin: 4px 0; }
 .reglas-salida { margin: 0; padding-left: 20px; font-family: var(--f-titulo); font-size: 14px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .reglas-salida li.nueva { background: #fff3c9; border-radius: 4px; padding: 2px 4px; }
+
+/* Criterios de división */
+.pizarra { margin: 8px 0 6px; padding: 10px 14px 10px 34px; background: #f4f6f3; border-radius: 6px; font-family: var(--f-titulo); font-size: 14px; display: flex; flex-direction: column; gap: 4px; min-height: 28px; }
+.pizarra li.nueva { background: #fff3c9; border-radius: 3px; padding: 0 4px; margin-left: -4px; }
+.impureza-fila { display: grid; grid-template-columns: 140px 1fr 56px; gap: 10px; align-items: center; margin: 4px 0; font-family: var(--f-titulo); font-size: 14px; max-width: 560px; }
+.impureza-barra { height: 16px; background: #eef1ed; border-radius: 3px; overflow: hidden; }
+.impureza-barra i { display: block; height: 100%; transition: width .25s; }
+.anatomia-leyenda { display: flex; flex-wrap: wrap; gap: 6px 18px; font-family: var(--f-titulo); font-size: 14px; margin: 6px 0 0; color: #4a5a51; }
+.formula-tarjeta { overflow-x: auto; }
+.arbol-paso { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }

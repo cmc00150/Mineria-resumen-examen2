@@ -567,3 +567,26 @@ tr.resaltado td { background: #e9f0fa !important; }
 .umbral-lados span { padding: 4px 10px; border-radius: 4px; }
 .ratio-fila { grid-template-columns: 150px minmax(0, 1fr) 72px minmax(0, 1fr); }
 .ratio-op { white-space: nowrap; }
+
+/* ───────────── Bayes: hilo ───────────── */
+.grafo-bayes { font-family: var(--f-titulo); display: flex; flex-direction: column; gap: 4px; }
+.grafo-bayes svg { max-width: 320px; }
+.grafo-bayes small { color: var(--tinta-3); font-size: 12.5px; }
+.bolsa { display: grid; gap: 8px; }
+.bolsa-cab, .bolsa-fila { display: grid; grid-template-columns: 40px 130px minmax(0, 1fr); gap: 12px; align-items: center; }
+.etq-dura { justify-self: start; background: var(--papel-2); border: 1px solid var(--linea); border-radius: 4px; padding: 3px 10px; font-size: 14px; }
+.bolsa-barra { display: flex; height: 26px; border-radius: 4px; overflow: hidden; }
+.bolsa-barra span { color: #fff; font-size: 12px; font-weight: 700; line-height: 26px; padding: 0 8px; white-space: nowrap; overflow: hidden; }
+.cadena-formulas .flecha-abajo { margin: 0; text-align: center; font-size: 14px; }
+.ratio-fila.dpc { grid-template-columns: 220px minmax(0, 1fr); }
+.cadena { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 6px; margin: 8px 0; }
+.cadena > b { width: 34px; font-size: 15px; align-self: center; }
+.factor { display: inline-flex; flex-direction: column; align-items: center; background: var(--papel-2); border-radius: 4px; padding: 3px 9px; font-weight: 700; font-size: 14px; position: relative; }
+.factor small { font-weight: 400; font-size: 11px; color: var(--tinta-3); }
+.factor i { position: absolute; right: -9px; bottom: 4px; font-style: normal; color: var(--tinta-3); }
+.factor.total { background: var(--cat-suave); color: var(--cat); }
+.normaliza { display: grid; gap: 8px; margin-bottom: 12px; font-size: 15px; }
+.normaliza > div { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.frac { display: inline-flex; flex-direction: column; text-align: center; font-size: 13px; }
+.frac span:first-child { border-bottom: 1.5px solid var(--tinta); padding: 0 4px; }
+@media (max-width: 640px) { .bolsa-cab, .bolsa-fila { grid-template-columns: 34px 1fr; } .bolsa-cab span:last-child, .bolsa-fila .bolsa-barra { grid-column: 1 / -1; } .ratio-fila.dpc { grid-template-columns: 1fr; } }

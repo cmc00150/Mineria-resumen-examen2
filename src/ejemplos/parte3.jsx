@@ -52,20 +52,22 @@ export function NaiveBayes() {
   const tot = calc.reduce((s, c) => s + c.prod, 0);
   const [mostr, setMostr] = useState([0.5, 0.5]);
   const frames = useMemo(() => {
-    const fr = [{ e: '0', ci: -1, k: -1, msg: 'Nuevo caso x. Para cada clase se parte de su prior y se multiplica por la probabilidad de cada atributo.' }];
+    const fr = [{ e: '0', ci: -1, k: -1, msg: `14 días de entrenamiento y el caso nuevo x = (${x.outlook}, ${x.temp}, ${x.hum}, ${x.windy}).` }];
+    fr.push({ e: '1', ci: -1, k: -1, msg: `Aprender P(Y): ${calc.map((c) => `${c.c === 'yes' ? 'SÍ' : 'NO'} ${c.n}/14`).join(', ')}.` });
+    fr.push({ e: '2', ci: -1, k: -1, msg: `Aprender P(Xᵢ | y): outlook y windy contando dentro de cada clase${laplace ? ' (con Laplace)' : ''}; temperatura y humedad con μ y σ por clase (curvas de abajo).` });
     calc.forEach((c, ci) => {
-      fr.push({ e: '1.0', ci, k: 0, msg: `Clase ${c.c === 'yes' ? 'SÍ' : 'NO'}: se empieza con P(${c.c === 'yes' ? 'sí' : 'no'}) = ${c.n}/${TENIS_NUM.length} = ${redondear(c.prior, 3)}.` });
+      fr.push({ e: '3.0', ci, k: 0, msg: `Clase ${c.c === 'yes' ? 'SÍ' : 'NO'}: se empieza con P(${c.c === 'yes' ? 'sí' : 'no'}) = ${c.n}/${TENIS_NUM.length} = ${redondear(c.prior, 3)}.` });
       const fs = [c.po, c.pw, c.nt, c.nh];
       const nom = [`P(${x.outlook} | ${c.c})`, `P(windy=${x.windy} | ${c.c})`, `N(${x.temp}; μ, σ)`, `N(${x.hum}; μ, σ)`];
       let run = c.prior;
       fs.forEach((v, k) => {
         run *= v;
-        fr.push({ e: '1.1', ci, k: k + 1, msg: `× ${nom[k]} = ${v < 0.001 && v > 0 ? v.toExponential(2) : redondear(v, 4)} → producto parcial ${run ? run.toExponential(3) : 0}.` });
+        fr.push({ e: '3.1', ci, k: k + 1, msg: `× ${nom[k]} = ${v < 0.001 && v > 0 ? v.toExponential(2) : redondear(v, 4)} → producto parcial ${run ? run.toExponential(3) : 0}.` });
       });
     });
     const mx = calc.reduce((a, b) => (b.prod > a.prod ? b : a));
-    fr.push({ e: '2', ci: 2, k: 5, norm: true, msg: `Normalizar: cada producto entre la suma (${tot.toExponential(3)}) → ${calc.map((c) => `${c.c === 'yes' ? 'SÍ' : 'NO'} ${redondear(tot ? c.prod / tot : 0, 3)}`).join(' · ')}.` });
-    fr.push({ e: '3', ci: 2, k: 5, norm: true, msg: `Clase con mayor valor (MAP): «${mx.c === 'yes' ? 'SÍ' : 'NO'}».` });
+    fr.push({ e: '4', ci: 2, k: 5, norm: true, msg: `Normalizar: cada producto entre la suma (${tot.toExponential(3)}) → ${calc.map((c) => `${c.c === 'yes' ? 'SÍ' : 'NO'} ${redondear(tot ? c.prod / tot : 0, 3)}`).join(' · ')}.` });
+    fr.push({ e: '5', ci: 2, k: 5, norm: true, msg: `Clase con mayor valor (MAP): «${mx.c === 'yes' ? 'SÍ' : 'NO'}».` });
     return fr;
   }, [x, laplace]); // eslint-disable-line
   const p = usePasos(frames, { intervalo: 900 });
@@ -87,7 +89,7 @@ export function NaiveBayes() {
     <Marco
       titulo="¿Se juega? x = (outlook, temperatura, humedad, viento)"
       controles={<label className="fila-control"><input type="checkbox" checked={laplace} onChange={(e) => setLaplace(e.target.checked)} /> Corrección de Laplace</label>}
-      pie={`Con (sunny, 87, 90, false) y sin Laplace sale P(no) ≈ 0,82 y P(sí) ≈ 0,18. La diapositiva da 0,8 / 0,2 porque multiplica mal el producto de «no» y usa μ = 86,6 para la humedad (la media real es 86,2). Prueba overcast: P(overcast | no) = 0/5 anula el producto de «no» sin Laplace; con Laplace pasa a (0+1)/(5+3).`}
+      pie={`Prueba outlook = overcast: sin Laplace, P(overcast | no) = 0/5 anula el producto de «no»; con Laplace pasa a (0+1)/(5+3).`}
     >
       <div className="fila-control">
         <label className="fila-control">outlook <select value={x.outlook} onChange={(e) => setX({ ...x, outlook: e.target.value })}>{['sunny', 'overcast', 'rain'].map((o) => <option key={o}>{o}</option>)}</select></label>

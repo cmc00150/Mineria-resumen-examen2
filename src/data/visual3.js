@@ -2,24 +2,7 @@
 
 export const VISUAL3 = {
   probabilisticos: {
-    formulas: [
-      ['Bayes', 'P(Y\\mid X_1..X_n) = \\frac{P(X_1..X_n\\mid Y)\\,P(Y)}{P(X_1..X_n)}'],
-      ['Hipótesis MAP', 'C(x) = \\arg\\max_y P(x_1..x_n\\mid y)\\,P(y)'],
-    ],
-    bloques: [
-      {
-        vs: [
-          { t: 'Reglas / árboles nítidos', i: 'arbol', items: ['relaciones deterministas', 'devuelven una etiqueta'] },
-          { t: 'Probabilísticos', i: 'probs', c: 'cat', items: ['incertidumbre natural', 'todas las variables a la vez (DPC)', 'devuelven una distribución'] },
-        ],
-      },
-      {
-        ti: 'Invertir en bolsa',
-        barras: { series: [{ n: 'P(invertir)', c: 'si' }, { n: 'P(no invertir)', c: 'no' }], max: 1, filas: [{ e: 'P1', v: [0.9, 0.1] }, { e: 'P2', v: [0.52, 0.48] }] },
-      },
-      { clave: 'Un árbol diría «invertir» en los dos → repartir igual no es razonable' },
-      { aviso: ['La DPC es inmanejable', 'El número de probabilidades crece enormemente incluso con n moderado → [[naive-bayes]]'] },
-    ],
+    infografia: 'HiloBayes',
   },
   'naive-bayes': {
     entrada: 'mixta', caja: 'gris', devuelve: 'probs',
@@ -31,31 +14,7 @@ export const VISUAL3 = {
       ['Fórmula de Laplace invertida en el PDF', 'Correcta: (n(xᵢ,cⱼ)+1)/(n(cⱼ)+Lᵢ).'],
       ['Ejemplo del tenis: P(no) ≈ 0,82, no 0,8', 'La línea de YES empieza por «P(NO)»; llama P(x|NO) a P(x,NO); μ humedad|no = 86,2 (no 86,6); el producto de NO es 4,90·10⁻⁵ (no 4,08·10⁻⁵).'],
     ],
-    formulas: [
-      ['Conjunta factorizada', 'P(x_1..x_n,y) = P(y)\\prod_i P(x_i\\mid y)'],
-      ['MAP', 'C(x) = \\arg\\max_y P(y)\\prod_i P(x_i\\mid y)'],
-      ['Discreta (EMV)', 'P(x_i\\mid c_j) = \\frac{n(x_i,c_j)}{n(c_j)}'],
-      ['Laplace', 'P(x_i\\mid c_j) = \\frac{n(x_i,c_j)+1}{n(c_j)+L_i}'],
-      ['Numérica', 'P(x\\mid c) = \\frac{1}{\\sqrt{2\\pi}\\sigma}e^{-\\frac{(x-\\mu)^2}{2\\sigma^2}}'],
-    ],
-    bloques: [
-      { demo: 'EstrellaNB' },
-      { clave: 'Funciona porque basta con que la clase correcta tenga la mayor probabilidad, aunque el valor no sea exacto' },
-      { ti: 'Estimación', chips: ['P(Y) + n tablas P(Xᵢ|y)', 'una sola pasada', 'Laplace → uniforme con pocos datos, EMV con muchos'] },
-      {
-        ti: 'Tenis: μ y σ por clase',
-        matriz: { cab: ['', 'temperatura', 'humedad'], filas: [['no', 'μ 74,6 · σ 7,89', 'μ 86,6* · σ 9,73'], ['sí', 'μ 73 · σ 6,16', 'μ 79,11 · σ 10,21']] },
-      },
-      {
-        ti: 'x = (sunny, 87, 90, false)',
-        matriz: {
-          cab: ['', 'P(c)', 'P(sunny|c)', 'P(false|c)', 'N(87)', 'N(90)', 'producto'],
-          filas: [['NO', '0,36', '0,6', '0,4', '0,014706', '0,038573', '4,08·10⁻⁵ (bien: 4,90·10⁻⁵)'], ['SÍ', '0,64', '0,22', '0,67', '0,004894', '0,022123', '1,02·10⁻⁵']],
-        },
-      },
-      { cifras: [{ v: '0,8 / 0,2', t: 'normalizado (diapositiva) → no se juega', c: 'no' }] },
-      { clave: 'Cómo se [[discretizacion|discretiza]] cambia mucho el acierto: iris 96 % (gaussiana) · 77 % (2 intervalos) · 94 % (3 intervalos) — detalle en «En Weka»' },
-    ],
+    infografia: 'HiloNB',
     wekaBloques: [
       {
         ti: 'Iris (150 registros, 4 atributos, 3 clases, 10-cv)',
@@ -69,6 +28,21 @@ export const VISUAL3 = {
     fuertes: ['Modela dependencias', 'Incertidumbre natural'],
     debiles: ['Aprendizaje estructural'],
     weka: 'BayesNet',
+    bloques: [
+      { demo: 'EstructurasBayes' },
+      {
+        ti: 'Frente a Naïve Bayes',
+        matriz: {
+          cab: ['', 'Naïve Bayes', 'Red bayesiana'],
+          filas: [
+            ['Arcos entre atributos', '✗ ninguno', '✓ relaciones causales'],
+            ['Qué se aprende', 'solo parámetros (tablas)', 'estructura (arcos) + parámetros'],
+            ['Dependencias entre variables', '✗ no las modela', '✓ las modela'],
+          ],
+        },
+      },
+      { clave: 'En el tema solo aparecen como la **solución** a la independencia de [[naive-bayes|Naïve Bayes]]: combinan razonamiento bayesiano con relaciones causales entre atributos.' },
+    ],
   },
 
   neuronales: {

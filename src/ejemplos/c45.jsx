@@ -10,7 +10,7 @@ const coma = (x, d = 3) => String(redondear(x, d)).replace('.', ',');
 const irAlEjemplo = () => document.getElementById('ejemplo')?.scrollIntoView({ behavior: 'smooth' });
 
 // ───────── Estación del hilo ─────────
-function Estacion({ n, titulo, paso, mejora, problema, solucion, children, ultima }) {
+export function Estacion({ n, titulo, paso, mejora, problema, solucion, solLabel = 'Qué hace C4.5', children, ultima }) {
   return (
     <li className={`estacion ${ultima ? 'ultima' : ''}`}>
       <div className="est-rail" aria-hidden="true"><span>{n}</span></div>
@@ -18,14 +18,16 @@ function Estacion({ n, titulo, paso, mejora, problema, solucion, children, ultim
         <header>
           <h3>{titulo}</h3>
           <div className="est-etiquetas">
-            <span className="est-paso">esquema: {paso}</span>
+            {paso && <span className="est-paso">esquema: {paso}</span>}
             {mejora && <span className="est-mejora">mejora: {mejora}</span>}
           </div>
         </header>
-        <div className="est-ps">
-          <div className="est-problema"><b>{problema[0]}</b><Texto t={problema[1]} /></div>
-          <div className="est-solucion"><b>Qué hace C4.5</b><Texto t={solucion} /></div>
-        </div>
+        {(problema || solucion) && (
+          <div className="est-ps">
+            {problema && <div className="est-problema"><b><Texto t={problema[0]} /></b><Texto t={problema[1]} /></div>}
+            {solucion && <div className="est-solucion"><b><Texto t={solLabel} /></b><Texto t={solucion} /></div>}
+          </div>
+        )}
         {children && <div className="est-visual">{children}</div>}
       </div>
     </li>

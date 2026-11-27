@@ -71,13 +71,15 @@ export const otras = [
       weka: 'bayes › NaiveBayes',
     },
     esquema: [
-      { k: 'in', t: 'Nuevo caso x = (x₁, …, xₙ)' },
+      { k: 'in', t: 'Datos de entrenamiento y caso nuevo x = (x₁, …, xₙ)' },
+      { k: 'paso', t: 'Aprender P(Y): frecuencia de cada clase' },
+      { k: 'paso', t: 'Aprender P(Xᵢ | y) de cada atributo', d: 'discreto: contar (con Laplace) · numérico: μ y σ por clase' },
       {
         k: 'bucle',
         t: 'Para cada clase y',
         pasos: [
           { k: 'paso', t: 'Empezar con P(y)' },
-          { k: 'paso', t: 'Multiplicar por P(xᵢ | y) de cada atributo', d: 'discreto: frecuencia (con Laplace) · numérico: densidad normal N(x; μ, σ)' },
+          { k: 'paso', t: 'Multiplicar por P(xᵢ | y) de cada atributo' },
         ],
       },
       { k: 'paso', t: 'Normalizar (opcional) para obtener probabilidades' },
